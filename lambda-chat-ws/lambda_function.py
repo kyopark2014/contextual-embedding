@@ -30,6 +30,7 @@ from typing import Annotated, List, Tuple, TypedDict, Literal, Sequence, Union
 from langchain_aws import AmazonKnowledgeBasesRetriever
 from tavily import TavilyClient  
 from langgraph.constants import Send
+from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
 
 s3 = boto3.client('s3')
 s3_bucket = os.environ.get('s3_bucket') # bucket name
@@ -46,6 +47,9 @@ selected_multimodal = 0
 useEnhancedSearch = False
 
 knowledge_base_name = os.environ.get('knowledge_base_name')
+
+opensearch_url = os.environ.get('opensearch_url')
+vectorIndexName = os.environ.get('vectorIndexName')
     
 multi_region_models = [   # claude sonnet 3.0
     {   
@@ -83,40 +87,43 @@ multi_region = 'disable'
 
 reference_docs = []
 
-secretsmanager = boto3.client('secretsmanager')
-   
-# api key to use LangSmith
-langsmith_api_key = ""
-try:
-    get_langsmith_api_secret = secretsmanager.get_secret_value(
-        SecretId=f"langsmithapikey-{projectName}"
-    )
-    # print('get_langsmith_api_secret: ', get_langsmith_api_secret)
-    secret = json.loads(get_langsmith_api_secret['SecretString'])
-    #print('secret: ', secret)
-    langsmith_api_key = secret['langsmith_api_key']
-    langchain_project = secret['langchain_project']
-except Exception as e:
-    raise e
-
-if langsmith_api_key:
-    os.environ["LANGCHAIN_API_KEY"] = langsmith_api_key
-    os.environ["LANGCHAIN_TRACING_V2"] = "true"
-    os.environ["LANGCHAIN_PROJECT"] = langchain_project
-    
-# api key to use Tavily Search
 tavily_api_key = ""
-try:
-    get_tavily_api_secret = secretsmanager.get_secret_value(
-        SecretId=f"tavilyapikey-{projectName}"
-    )
-    #print('get_tavily_api_secret: ', get_tavily_api_secret)
-    secret = json.loads(get_tavily_api_secret['SecretString'])
-    # print('secret: ', secret)
-    tavily_api_key = json.loads(secret['tavily_api_key'])
-    # print('tavily_api_key: ', tavily_api_key)
-except Exception as e: 
-    raise e
+def load_secrets():
+    global tavily_api_key
+    secretsmanager = boto3.client('secretsmanager')
+    
+    # api key to use LangSmith
+    langsmith_api_key = ""
+    try:
+        get_langsmith_api_secret = secretsmanager.get_secret_value(
+            SecretId=f"langsmithapikey-{projectName}"
+        )
+        # print('get_langsmith_api_secret: ', get_langsmith_api_secret)
+        secret = json.loads(get_langsmith_api_secret['SecretString'])
+        #print('secret: ', secret)
+        langsmith_api_key = secret['langsmith_api_key']
+        langchain_project = secret['langchain_project']
+    except Exception as e:
+        raise e
+
+    if langsmith_api_key:
+        os.environ["LANGCHAIN_API_KEY"] = langsmith_api_key
+        os.environ["LANGCHAIN_TRACING_V2"] = "true"
+        os.environ["LANGCHAIN_PROJECT"] = langchain_project
+        
+    # api key to use Tavily Search    
+    try:
+        get_tavily_api_secret = secretsmanager.get_secret_value(
+            SecretId=f"tavilyapikey-{projectName}"
+        )
+        #print('get_tavily_api_secret: ', get_tavily_api_secret)
+        secret = json.loads(get_tavily_api_secret['SecretString'])
+        # print('secret: ', secret)
+        tavily_api_key = json.loads(secret['tavily_api_key'])
+        # print('tavily_api_key: ', tavily_api_key)
+    except Exception as e: 
+        raise e
+load_secrets()
 
 def check_tavily_secret(tavily_api_key):
     query = 'what is LangGraph'
@@ -135,15 +142,14 @@ def check_tavily_secret(tavily_api_key):
     
     return valid_keys
 
-tavily_api_key = check_tavily_secret(tavily_api_key)
-# print('tavily_api_key: ', tavily_api_key)
-print('The number of valid tavily api keys: ', len(tavily_api_key))
+#tavily_api_key = check_tavily_secret(tavily_api_key)
+#print('The number of valid tavily api keys: ', len(tavily_api_key))
 
 selected_tavily = -1
 if len(tavily_api_key):
     os.environ["TAVILY_API_KEY"] = tavily_api_key[0]
     selected_tavily = 0
-      
+   
 def tavily_search(query, k):
     global selected_tavily
     docs = []
@@ -183,6 +189,110 @@ def tavily_search(query, k):
 # result = tavily_search('what is LangChain', 2)
 # print('search result: ', result)
 
+# get auth
+region = os.environ.get('AWS_REGION', 'us-west-2')
+print('region: ', region)
+service = "aoss"  
+
+credentials = boto3.Session().get_credentials()
+awsauth = AWSV4SignerAuth(credentials, region, service)
+
+os_client = OpenSearch(
+    hosts = [{
+        'host': opensearch_url.replace("https://", ""), 
+        'port': 443
+    }],
+    http_auth=awsauth,
+    use_ssl = True,
+    verify_certs = True,
+    connection_class=RequestsHttpConnection,
+)
+
+def is_not_exist(index_name):    
+    print('index_name: ', index_name)
+    
+    if os_client.indices.exists(index_name):
+        print('use exist index: ', index_name)    
+        return False
+    else:
+        print('no index: ', index_name)
+        return True
+    
+def initiate_opensearch():
+    #########################
+    # opensearch index
+    #########################
+    if(is_not_exist(vectorIndexName)):
+        print(f"creating opensearch index... {vectorIndexName}")        
+        body={
+            'settings':{
+                "index.knn": True,
+                "index.knn.algo_param.ef_search": 512,
+                'analysis': {
+                    'analyzer': {
+                        'my_analyzer': {
+                            'char_filter': ['html_strip'], 
+                            'tokenizer': 'nori',
+                            'filter': ['nori_number','lowercase','trim','my_nori_part_of_speech'],
+                            'type': 'custom'
+                        }
+                    },
+                    'tokenizer': {
+                        'nori': {
+                            'decompound_mode': 'mixed',
+                            'discard_punctuation': 'true',
+                            'type': 'nori_tokenizer'
+                        }
+                    },
+                    "filter": {
+                        "my_nori_part_of_speech": {
+                            "type": "nori_part_of_speech",
+                            "stoptags": [
+                                    "E", "IC", "J", "MAG", "MAJ",
+                                    "MM", "SP", "SSC", "SSO", "SC",
+                                    "SE", "XPN", "XSA", "XSN", "XSV",
+                                    "UNA", "NA", "VSV"
+                            ]
+                        }
+                    }
+                },
+            },
+            'mappings': {
+                'properties': {
+                    'vector_field': {
+                        'type': 'knn_vector',
+                        'dimension': 1024,
+                        'method': {
+                            "name": "hnsw",
+                            "engine": "faiss",
+                            "parameters": {
+                                "ef_construction": 512,
+                                "m": 16
+                            }
+                        }                  
+                    },
+                    "AMAZON_BEDROCK_METADATA": {"type": "text", "index": False},
+                    "AMAZON_BEDROCK_TEXT_CHUNK": {"type": "text"},
+                }
+            }
+        }
+            
+        try: # create index
+            response = os_client.indices.create(
+                vectorIndexName,
+                body=body
+            )
+            print('opensearch index was created:', response)
+
+            # delay 3seconds
+            time.sleep(5)
+        except Exception:
+            err_msg = traceback.format_exc()
+            print('error message: ', err_msg)                
+            #raise Exception ("Not able to create the index")
+
+initiate_opensearch()
+   
 # websocket
 connection_url = os.environ.get('connection_url')
 client = boto3.client('apigatewaymanagementapi', endpoint_url=connection_url)
