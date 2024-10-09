@@ -31,6 +31,7 @@ sqs = boto3.client('sqs')
 s3_client = boto3.client('s3')  
 s3_bucket = os.environ.get('s3_bucket') # bucket name
 s3_prefix = os.environ.get('s3_prefix')
+
 meta_prefix = "metadata/"
 enableParallelSummary = os.environ.get('enableParallelSummary')
 enalbeParentDocumentRetrival = os.environ.get('enalbeParentDocumentRetrival')
@@ -224,11 +225,11 @@ bedrock_embeddings = get_embedding()
 index_name = 'idx-rag'
 vectorstore = OpenSearchVectorSearch(
     index_name=index_name,  
-    is_aoss = False,
+    is_aoss = True,
     #engine="faiss",  # default: nmslib
     embedding_function = bedrock_embeddings,
     opensearch_url = opensearch_url,
-    http_auth=(opensearch_account, opensearch_passwd),
+    http_auth=awsauth
 )  
 
 def store_document_for_opensearch(file_type, key):

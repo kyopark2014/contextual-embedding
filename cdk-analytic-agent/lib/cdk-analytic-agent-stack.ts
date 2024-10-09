@@ -28,18 +28,12 @@ const s3_prefix = 'docs';
 const projectName = `info-analytic-agent`; 
 const bucketName = `storage-for-${projectName}-${accountId}-${region}`; 
 
-const enableReference = 'true';
 const debugMessageMode = 'false'; // if true, debug messages will be delivered to the client.
-const useParallelRAG = 'true';
-const numberOfRelevantDocs = '6';
 const supportedFormat = JSON.stringify(["pdf", "txt", "csv", "pptx", "ppt", "docx", "doc", "xlsx", "py", "js", "md", 'png', 'jpeg', 'jpg']);  
 
 const max_object_size = 102400000; // 100 MB max size of an object, 50MB(default)
 const enableHybridSearch = 'true';
 const enalbeParentDocumentRetrival = 'true';
-const knowledge_base_name = `knowledge-base-for-${projectName}-${region}`
-const parsingModelArn = `arn:aws:bedrock:${region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0`
-const embeddingModelArn = `arn:aws:bedrock:${region}::foundation-model/amazon.titan-embed-text-v2:0`
 
 const claude3_5_sonnet = [
   {
@@ -665,26 +659,15 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
       environment: {
         s3_bucket: s3Bucket.bucketName,
         s3_prefix: s3_prefix,
-        s3_arn: s3Bucket.bucketArn,
         callLogTableName: callLogTableName,
         connection_url: connection_url,
-        enableReference: enableReference,
         opensearch_url: opensearch_url,
         path: 'https://'+distribution.domainName+'/',   
-        roleArn: roleLambdaWebsocket.roleArn,
         debugMessageMode: debugMessageMode,
-        useParallelRAG: useParallelRAG,
-        numberOfRelevantDocs: numberOfRelevantDocs,
         LLM_for_chat: JSON.stringify(claude3_sonnet),          
         LLM_for_multimodal: JSON.stringify(claude3_sonnet),          
         LLM_embedding: JSON.stringify(titan_embedding_v2),
-        priorty_search_embedding: JSON.stringify(titan_embedding_v1),
         projectName: projectName,
-        knowledge_base_name: knowledge_base_name,
-        parsingModelArn: parsingModelArn,
-        embeddingModelArn: embeddingModelArn,
-        collectionName: collectionName,
-        collectionArn: collectionArn,
         vectorIndexName: vectorIndexName
       }
     });     
