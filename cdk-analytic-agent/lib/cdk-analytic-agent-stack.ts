@@ -170,7 +170,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
     super(scope, id, props);
 
     // OpenSearch Serverless
-    const collectionName = projectName
+  /*  const collectionName = projectName
     const OpenSearchCollection = new opensearchserverless.CfnCollection(this, `opensearch-correction-for-${projectName}`, {
       name: collectionName,    
       description: `opensearch correction for ${projectName}`,
@@ -211,7 +211,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
       ]), 
       
     });
-    OpenSearchCollection.addDependency(netPolicy);
+    OpenSearchCollection.addDependency(netPolicy); 
 
     const dataAccessPolicy = new opensearchserverless.CfnAccessPolicy(this, `opensearch-data-collection-policy-for-${projectName}`, {
       name: `data-collection-policy`,
@@ -249,7 +249,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
         },
       ]),
     });
-    OpenSearchCollection.addDependency(dataAccessPolicy);
+    OpenSearchCollection.addDependency(dataAccessPolicy); */
 
     // s3 
     const s3Bucket = new s3.Bucket(this, `storage-${projectName}`,{
@@ -661,7 +661,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
         s3_prefix: s3_prefix,
         callLogTableName: callLogTableName,
         connection_url: connection_url,
-        opensearch_url: opensearch_url,
+      //  opensearch_url: opensearch_url,
         path: 'https://'+distribution.domainName+'/',   
         debugMessageMode: debugMessageMode,
         LLM_for_chat: JSON.stringify(claude3_sonnet),          
@@ -790,7 +790,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
           s3_prefix: s3_prefix,
           enableParallelSummary: enableParallelSummary,
           enalbeParentDocumentRetrival: enalbeParentDocumentRetrival,          
-          opensearch_url: opensearch_url,
+        //  opensearch_url: opensearch_url,
           sqsUrl: queueUrl[i],
           LLM_for_chat: JSON.stringify(claude3_sonnet),          
           LLM_for_multimodal: JSON.stringify(claude3_sonnet),          
