@@ -268,9 +268,7 @@ def initiate_opensearch():
                                 "m": 16
                             }
                         }                  
-                    },
-                    "metadata": {"type": "text", "index": False},
-                    "text": {"type": "text"},
+                    }
                 }
             }
         }
