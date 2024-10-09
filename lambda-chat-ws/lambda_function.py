@@ -565,7 +565,255 @@ def isKorean(text):
         print('Not Korean: ', word_kor)
         return False
 
+class GradeDocuments(BaseModel):
+    """Binary score for relevance check on retrieved documents."""
+
+    binary_score: str = Field(description="Documents are relevant to the question, 'yes' or 'no'")
+
+def get_retrieval_grader(chat):
+    system = """You are a grader assessing relevance of a retrieved document to a user question. \n 
+    If the document contains keyword(s) or semantic meaning related to the question, grade it as relevant. \n
+    Give a binary score 'yes' or 'no' score to indicate whether the document is relevant to the question."""
+
+    grade_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system),
+            ("human", "Retrieved document: \n\n {document} \n\n User question: {question}"),
+        ]
+    )
+    
+    structured_llm_grader = chat.with_structured_output(GradeDocuments)
+    retrieval_grader = grade_prompt | structured_llm_grader
+    return retrieval_grader
+
+def grade_document_based_on_relevance(conn, question, doc, models, selected):     
+    chat = get_multi_region_chat(models, selected)
+    retrieval_grader = get_retrieval_grader(chat)
+    score = retrieval_grader.invoke({"question": question, "document": doc.page_content})
+    # print(f"score: {score}")
+    
+    grade = score.binary_score    
+    if grade == 'yes':
+        print("---GRADE: DOCUMENT RELEVANT---")
+        conn.send(doc)
+    else:  # no
+        print("---GRADE: DOCUMENT NOT RELEVANT---")
+        conn.send(None)
+    
+    conn.close()
+                                    
+def grade_documents_using_parallel_processing(question, documents):
+    global selected_chat
+    
+    filtered_docs = []    
+
+    processes = []
+    parent_connections = []
+    
+    for i, doc in enumerate(documents):
+        #print(f"grading doc[{i}]: {doc.page_content}")        
+        parent_conn, child_conn = Pipe()
+        parent_connections.append(parent_conn)
+            
+        process = Process(target=grade_document_based_on_relevance, args=(child_conn, question, doc, multi_region_models, selected_chat))
+        processes.append(process)
+
+        selected_chat = selected_chat + 1
+        if selected_chat == len(multi_region_models):
+            selected_chat = 0
+    for process in processes:
+        process.start()
+            
+    for parent_conn in parent_connections:
+        relevant_doc = parent_conn.recv()
+
+        if relevant_doc is not None:
+            filtered_docs.append(relevant_doc)
+
+    for process in processes:
+        process.join()
+    
+    #print('filtered_docs: ', filtered_docs)
+    return filtered_docs
+
+def grade_documents(question, documents):
+    print("###### grade_documents ######")
+    
+    filtered_docs = []
+    if multi_region == 'enable':  # parallel processing
+        print("start grading...")
+        filtered_docs = grade_documents_using_parallel_processing(question, documents)
+
+    else:
+        # Score each doc    
+        chat = get_chat()
+        retrieval_grader = get_retrieval_grader(chat)
+        for i, doc in enumerate(documents):
+            # print('doc: ', doc)
+            print_doc(i, doc)
+            
+            score = retrieval_grader.invoke({"question": question, "document": doc.page_content})
+            # print("score: ", score)
+            
+            grade = score.binary_score
+            # print("grade: ", grade)
+            # Document relevant
+            if grade.lower() == "yes":
+                print("---GRADE: DOCUMENT RELEVANT---")
+                filtered_docs.append(doc)
+            # Document not relevant
+            else:
+                print("---GRADE: DOCUMENT NOT RELEVANT---")
+                # We do not include the document in filtered_docs
+                # We set a flag to indicate that we want to run web search
+                continue
+    
+    # print('len(docments): ', len(filtered_docs))    
+    return filtered_docs
+
+def print_doc(i, doc):
+    if len(doc.page_content)>=100:
+        text = doc.page_content[:100]
+    else:
+        text = doc.page_content
+            
+    print(f"{i}: {text}, metadata:{doc.metadata}")
+
+def query_using_RAG_context(connectionId, requestId, chat, context, revised_question):    
+    if isKorean(revised_question)==True:
+        system = (
+            """다음의 <context> tag안의 참고자료를 이용하여 상황에 맞는 구체적인 세부 정보를 충분히 제공합니다. Assistant의 이름은 서연이고, 모르는 질문을 받으면 솔직히 모른다고 말합니다.
+            
+            <context>
+            {context}
+            </context>"""
+        )
+    else: 
+        system = (
+            """Here is pieces of context, contained in <context> tags. Provide a concise answer to the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+            
+            <context>
+            {context}
+            </context>"""
+        )
+    
+    human = "{input}"
+    
+    prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
+    # print('prompt: ', prompt)
+                   
+    chain = prompt | chat
+    
+    try: 
+        isTyping(connectionId, requestId)  
+        stream = chain.invoke(
+            {
+                "context": context,
+                "input": revised_question,
+            }
+        )
+        msg = readStreamMsg(connectionId, requestId, stream.content)    
+        print('msg: ', msg)
+        
+    except Exception:
+        err_msg = traceback.format_exc()
+        print('error message: ', err_msg)        
+            
+        sendErrorMessage(connectionId, requestId, err_msg)    
+        raise Exception ("Not able to request to LLM")
+
+    return msg
+
+def get_answer_using_opensearch(chat, text, connectionId, requestId):    
+    global reference_docs
+    
+    msg = reference = ""
+    top_k = 4
+    relevant_docs = []
+
+    filtered_docs = grade_documents(text, relevant_docs)
+    
+    # duplication checker
+    filtered_docs = check_duplication(filtered_docs)
+            
+    relevant_context = ""
+    for i, document in enumerate(filtered_docs):
+        print(f"{i}: {document}")
+        if document.page_content:
+            content = document.page_content
+            
+        relevant_context = relevant_context + content + "\n\n"
+        
+    print('relevant_context: ', relevant_context)
+
+    msg = query_using_RAG_context(connectionId, requestId, chat, relevant_context, text)
+    
+    reference_docs += filtered_docs
+           
+    return msg
+
 #########################################################
+
+contentList = []
+def check_duplication(docs):
+    global contentList
+    length_original = len(docs)
+    
+    updated_docs = []
+    print('length of relevant_docs:', len(docs))
+    for doc in docs:            
+        # print('excerpt: ', doc['metadata']['excerpt'])
+            if doc.page_content in contentList:
+                print('duplicated!')
+                continue
+            contentList.append(doc.page_content)
+            updated_docs.append(doc)            
+    length_updateed_docs = len(updated_docs)     
+    
+    if length_original == length_updateed_docs:
+        print('no duplication')
+    
+    return updated_docs
+
+def get_references(docs):
+    reference = "\n\nFrom\n"
+    for i, doc in enumerate(docs):
+        page = ""
+        if "page" in doc.metadata:
+            page = doc.metadata['page']
+            #print('page: ', page)            
+        url = ""
+        if "url" in doc.metadata:
+            url = doc.metadata['url']
+            #print('url: ', url)                
+        name = ""
+        if "name" in doc.metadata:
+            name = doc.metadata['name']
+            #print('name: ', name)     
+           
+        sourceType = ""
+        if "from" in doc.metadata:
+            sourceType = doc.metadata['from']
+        #print('sourceType: ', sourceType)        
+        
+        #if len(doc.page_content)>=1000:
+        #    excerpt = ""+doc.page_content[:1000]
+        #else:
+        #    excerpt = ""+doc.page_content
+        excerpt = ""+doc.page_content
+        # print('excerpt: ', excerpt)
+        
+        # for some of unusual case 
+        #excerpt = excerpt.replace('"', '')        
+        #excerpt = ''.join(c for c in excerpt if c not in '"')
+        excerpt = re.sub('"', '', excerpt)
+        print('excerpt(quotation removed): ', excerpt)
+        
+        if page:                
+            reference = reference + f"{i+1}. {page}page in <a href={url} target=_blank>{name}</a>, {sourceType}, <a href=\"#\" onClick=\"alert(`{excerpt}`)\">관련문서</a>\n"
+        else:
+            reference = reference + f"{i+1}. <a href={url} target=_blank>{name}</a>, {sourceType}, <a href=\"#\" onClick=\"alert(`{excerpt}`)\">관련문서</a>\n"
+    return reference
 
 def general_conversation(connectionId, requestId, chat, query):
     if isKorean(query)==True :
@@ -1021,7 +1269,7 @@ def getResponse(connectionId, jsonBody):
                     msg = general_conversation(connectionId, requestId, chat, text)                  
                 
                 elif convType == 'qa-knowledge-base':   # RAG - Vector
-                    msg = get_answer_using_knowledge_base(chat, text, connectionId, requestId)
+                    msg = get_answer_using_opensearch(chat, text, connectionId, requestId)
                 
                 elif convType == 'agent-executor':
                     msg = run_agent_executor(connectionId, requestId, text)
@@ -1033,6 +1281,9 @@ def getResponse(connectionId, jsonBody):
                                     
                 memory_chain.chat_memory.add_user_message(text)
                 memory_chain.chat_memory.add_ai_message(msg)
+                
+                if reference_docs:
+                    reference = get_references(reference_docs)
                 
         elif type == 'document':
             isTyping(connectionId, requestId)

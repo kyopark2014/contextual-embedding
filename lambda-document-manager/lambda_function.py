@@ -230,6 +230,7 @@ vectorstore = OpenSearchVectorSearch(
     #engine="faiss",  # default: nmslib
     embedding_function = bedrock_embeddings,
     opensearch_url = opensearch_url,
+    connection_class = RequestsHttpConnection,
     http_auth=awsauth
 )  
 
