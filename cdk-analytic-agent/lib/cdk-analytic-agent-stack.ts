@@ -799,7 +799,8 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
           path: 'https://'+distribution.domainName+'/',           
           max_object_size: String(max_object_size),
           supportedFormat: supportedFormat,
-          enableHybridSearch: enableHybridSearch
+          enableHybridSearch: enableHybridSearch,
+          vectorIndexName: vectorIndexName
         }
       });         
       s3Bucket.grantReadWrite(lambdDocumentManager[i]); // permission for s3
