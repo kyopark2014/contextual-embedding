@@ -1360,11 +1360,11 @@ def lambda_handler(event, context):
                 if documentId:
                     try: # delete metadata                        
                         delete_document_if_exist(metadata_key)
-                        
-                        print('delete metadata: ', metadata_key)                        
+
+                        print('delete metadata: ', metadata_key)
                         result = s3_client.delete_object(Bucket=bucket, Key=metadata_key)
                         # print('result of metadata deletion: ', result)
-                        
+
                     except Exception:
                         err_msg = traceback.format_exc()
                         print('err_msg: ', err_msg)
