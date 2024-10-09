@@ -232,9 +232,9 @@ vectorstore = OpenSearchVectorSearch(
     opensearch_url = opensearch_url,
     http_auth=awsauth,
     connection_class = RequestsHttpConnection,
-    use_ssl = True,
-    verify_certs = True,
-    http_compress = True,
+    #use_ssl = True,
+    #verify_certs = True,
+    #http_compress = True,
 )  
 
 def store_document_for_opensearch(file_type, key):
@@ -475,7 +475,7 @@ def add_to_opensearch(docs, key):
     print('objectName: ', objectName)    
     metadata_key = meta_prefix+objectName+'.metadata.json'
     print('meta file name: ', metadata_key)    
-    # delete_document_if_exist(metadata_key)
+    delete_document_if_exist(metadata_key)
         
     ids = []
     if enalbeParentDocumentRetrival == 'true':
