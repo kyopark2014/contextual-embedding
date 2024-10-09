@@ -221,14 +221,14 @@ def get_embedding():
     
     return bedrock_embedding
 
-bedrock_embeddings = get_embedding()
+bedrock_embedding = get_embedding()
 
 index_name = vectorIndexName
 vectorstore = OpenSearchVectorSearch(
     index_name=index_name,
     is_aoss = True,
     engine="faiss",  # default: nmslib
-    embedding_function = bedrock_embeddings,
+    embedding_function = bedrock_embedding,
     opensearch_url = opensearch_url,
     http_auth=awsauth,
     connection_class = RequestsHttpConnection,
