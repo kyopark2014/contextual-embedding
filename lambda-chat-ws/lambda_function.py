@@ -789,7 +789,7 @@ def get_documents_from_opensearch(vectorstore_opensearch, query, top_k):
 
 def get_parent_content(parent_doc_id):
     response = os_client.get(
-        index=index_name, 
+        index="*", 
         id = parent_doc_id
     )
     
