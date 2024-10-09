@@ -42,7 +42,6 @@ LLM_embedding = json.loads(os.environ.get('LLM_embedding'))
 selected_chat = 0
 selected_multimodal = 0
 useEnhancedSearch = False
-
 opensearch_url = os.environ.get('opensearch_url')
 vectorIndexName = os.environ.get('vectorIndexName')
     
