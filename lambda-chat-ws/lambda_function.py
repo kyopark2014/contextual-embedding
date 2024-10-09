@@ -46,8 +46,10 @@ selected_multimodal = 0
 selected_embedding = 0
 useEnhancedSearch = False
 opensearch_url = os.environ.get('opensearch_url')
-vectorIndexName = os.environ.get('vectorIndexName')
 enalbeParentDocumentRetrival = os.environ.get('enalbeParentDocumentRetrival')
+
+vectorIndexName = os.environ.get('vectorIndexName')
+index_name = vectorIndexName
     
 multi_region_models = [   # claude sonnet 3.0
     {   
@@ -813,7 +815,6 @@ def get_parent_content(parent_doc_id):
         # raise Exception ("Not able to request to LLM")
         return "", "", ""
 
-index_name = vectorIndexName
 def get_answer_using_opensearch(chat, text, connectionId, requestId):    
     global reference_docs
     
