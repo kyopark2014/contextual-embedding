@@ -112,7 +112,7 @@ def delete_document_if_exist(metadata_key):
     except Exception:
         err_msg = traceback.format_exc()
         print('error message: ', err_msg)        
-        raise Exception ("Not able to create meta file")
+        # raise Exception ("Not able to create meta file")
 
 def get_chat():
     global selected_chat
@@ -475,7 +475,7 @@ def add_to_opensearch(docs, key):
     print('objectName: ', objectName)    
     metadata_key = meta_prefix+objectName+'.metadata.json'
     print('meta file name: ', metadata_key)    
-    delete_document_if_exist(metadata_key)
+    # delete_document_if_exist(metadata_key)
         
     ids = []
     if enalbeParentDocumentRetrival == 'true':
@@ -519,7 +519,7 @@ def add_to_opensearch(docs, key):
                 # print('child_docs: ', child_docs)
                 
                 child_doc_ids = vectorstore.add_documents(child_docs, bulk_size = 10000)
-                print('child_doc_ids: ', child_doc_ids)
+                print('child_doc_ids: ', child_doc_ids) 
                     
                 ids = parent_doc_ids+child_doc_ids
             except Exception:
