@@ -269,8 +269,8 @@ def initiate_opensearch():
                             }
                         }                  
                     },
-                    "AMAZON_BEDROCK_METADATA": {"type": "text", "index": False},
-                    "AMAZON_BEDROCK_TEXT_CHUNK": {"type": "text"},
+                    "metadata": {"type": "text", "index": False},
+                    "text": {"type": "text"},
                 }
             }
         }

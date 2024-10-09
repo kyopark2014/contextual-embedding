@@ -251,7 +251,6 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
     });
     OpenSearchCollection.addDependency(dataAccessPolicy);
 
-
     // s3 
     const s3Bucket = new s3.Bucket(this, `storage-${projectName}`,{
       bucketName: bucketName,
