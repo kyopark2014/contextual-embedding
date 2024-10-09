@@ -25,6 +25,8 @@ const accountId = process.env.CDK_DEFAULT_ACCOUNT;
 const debug = false;
 const stage = 'dev';
 const s3_prefix = 'docs';
+const enableParallelSummary = 'false';
+const enalbeParentDocumentRetrival = 'false';
 const projectName = `info-analytic-agent`; 
 const bucketName = `storage-for-${projectName}-${accountId}-${region}`; 
 
@@ -33,7 +35,6 @@ const supportedFormat = JSON.stringify(["pdf", "txt", "csv", "pptx", "ppt", "doc
 
 const max_object_size = 102400000; // 100 MB max size of an object, 50MB(default)
 const enableHybridSearch = 'true';
-const enalbeParentDocumentRetrival = 'true';
 
 const claude3_5_sonnet = [
   {
@@ -787,18 +788,18 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
         environment: {
           s3_bucket: s3Bucket.bucketName,
           s3_prefix: s3_prefix,
+          enableParallelSummary: enableParallelSummary,
+          enalbeParentDocumentRetrival: enalbeParentDocumentRetrival,          
           opensearch_url: opensearch_url,
-          roleArn: roleLambdaWebsocket.roleArn,
-          path: 'https://'+distribution.domainName+'/', 
           sqsUrl: queueUrl[i],
-          max_object_size: String(max_object_size),
-          supportedFormat: supportedFormat,
           LLM_for_chat: JSON.stringify(claude3_sonnet),          
           LLM_for_multimodal: JSON.stringify(claude3_sonnet),          
           LLM_embedding: JSON.stringify(titan_embedding_v2),
-          enalbeParentDocumentRetrival: enalbeParentDocumentRetrival,
-          enableHybridSearch: enableHybridSearch,
-          vectorIndexName: vectorIndexName
+          roleArn: roleLambdaWebsocket.roleArn,
+          path: 'https://'+distribution.domainName+'/',           
+          max_object_size: String(max_object_size),
+          supportedFormat: supportedFormat,
+          enableHybridSearch: enableHybridSearch
         }
       });         
       s3Bucket.grantReadWrite(lambdDocumentManager[i]); // permission for s3
