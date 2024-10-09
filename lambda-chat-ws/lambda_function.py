@@ -950,13 +950,6 @@ def getResponse(connectionId, jsonBody):
     if "multi_region" in jsonBody:
         multi_region = jsonBody['multi_region']
     print('multi_region: ', multi_region)
-    
-    global rag_state    
-    if "rag" in jsonBody:
-        rag_state = jsonBody['rag']
-    else:
-        rag_state = 'disable'
-    print('rag_state: ', rag_state)
         
     print('initiate....')
     global reference_docs
@@ -1027,12 +1020,17 @@ def getResponse(connectionId, jsonBody):
             else:            
                 if convType == 'normal':      # normal
                     msg = general_conversation(connectionId, requestId, chat, text)                  
-
-                elif convType == "translation":
-                    msg = translate_text(chat, text) 
                 
-                elif convType == "grammar":
-                    msg = check_grammer(chat, text)  
+                elif convType == 'qa-knowledge-base':   # RAG - Vector
+                    msg = get_answer_using_knowledge_base(chat, text, connectionId, requestId)
+                
+                elif convType == 'agent-executor':
+                    msg = run_agent_executor(connectionId, requestId, text)
+                
+                elif convType == 'agent-executor-chat':
+                    revised_question = revise_question(connectionId, requestId, chat, text)     
+                    print('revised_question: ', revised_question)  
+                    msg = run_agent_executor(connectionId, requestId, revised_question)
                                     
                 memory_chain.chat_memory.add_user_message(text)
                 memory_chain.chat_memory.add_ai_message(msg)
