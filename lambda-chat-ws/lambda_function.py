@@ -1398,7 +1398,7 @@ def getResponse(connectionId, jsonBody):
                 if convType == 'normal':      # normal
                     msg = general_conversation(connectionId, requestId, chat, text)                  
                 
-                elif convType == 'qa-knowledge-base':   # RAG - Vector
+                elif convType == 'rag-opensearch':   # RAG - Vector
                     msg = get_answer_using_opensearch(chat, text, connectionId, requestId)
                 
                 elif convType == 'agent-executor':
