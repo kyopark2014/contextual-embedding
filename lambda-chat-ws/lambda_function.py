@@ -27,6 +27,8 @@ from typing import Annotated, List, Tuple, TypedDict, Literal, Sequence, Union
 from tavily import TavilyClient  
 from langgraph.constants import Send
 from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
+from langchain_community.vectorstores.opensearch_vector_search import OpenSearchVectorSearch
+from langchain_aws import BedrockEmbeddings
 
 s3 = boto3.client('s3')
 s3_bucket = os.environ.get('s3_bucket') # bucket name
@@ -41,9 +43,11 @@ LLM_for_multimodal = json.loads(os.environ.get('LLM_for_multimodal'))
 LLM_embedding = json.loads(os.environ.get('LLM_embedding'))
 selected_chat = 0
 selected_multimodal = 0
+selected_embedding = 0
 useEnhancedSearch = False
 opensearch_url = os.environ.get('opensearch_url')
 vectorIndexName = os.environ.get('vectorIndexName')
+enalbeParentDocumentRetrival = os.environ.get('enalbeParentDocumentRetrival')
     
 multi_region_models = [   # claude sonnet 3.0
     {   
@@ -419,6 +423,36 @@ def get_multimodal():
         selected_multimodal = 0
     
     return multimodal
+
+def get_embedding():
+    global selected_embedding
+    profile = LLM_embedding[selected_embedding]
+    bedrock_region =  profile['bedrock_region']
+    model_id = profile['model_id']
+    print(f'selected_embedding: {selected_embedding}, bedrock_region: {bedrock_region}, model_id: {model_id}')
+    
+    # bedrock   
+    boto3_bedrock = boto3.client(
+        service_name='bedrock-runtime',
+        region_name=bedrock_region, 
+        config=Config(
+            retries = {
+                'max_attempts': 30
+            }
+        )
+    )
+    
+    bedrock_embedding = BedrockEmbeddings(
+        client=boto3_bedrock,
+        region_name = bedrock_region,
+        model_id = model_id
+    )  
+    
+    selected_embedding = selected_embedding + 1
+    if selected_embedding == len(LLM_embedding):
+        selected_embedding = 0
+    
+    return bedrock_embedding
     
 # load documents from s3 for pdf and txt
 def load_document(file_type, s3_file_name):
@@ -724,17 +758,113 @@ def query_using_RAG_context(connectionId, requestId, chat, context, revised_ques
 
     return msg
 
+def get_documents_from_opensearch(vectorstore_opensearch, query, top_k):
+    result = vectorstore_opensearch.similarity_search_with_score(
+        query = query,
+        k = top_k*2,  
+        pre_filter={"doc_level": {"$eq": "child"}}
+    )
+    print('result: ', result)
+            
+    relevant_documents = []
+    docList = []
+    for re in result:
+        if 'parent_doc_id' in re[0].metadata:
+            parent_doc_id = re[0].metadata['parent_doc_id']
+            doc_level = re[0].metadata['doc_level']
+            print(f"doc_level: {doc_level}, parent_doc_id: {parent_doc_id}")
+                    
+            if doc_level == 'child':
+                if parent_doc_id in docList:
+                    print('duplicated!')
+                else:
+                    relevant_documents.append(re)
+                    docList.append(parent_doc_id)
+                    
+                    if len(relevant_documents)>=top_k:
+                        break
+                                
+    # print('lexical query result: ', json.dumps(response))
+    print('relevant_documents: ', relevant_documents)
+    
+    return relevant_documents
+
+def get_parent_content(parent_doc_id):
+    response = os_client.get(
+        index="idx-rag", 
+        id = parent_doc_id
+    )
+    
+    source = response['_source']                            
+    # print('parent_doc: ', source['text'])   
+    
+    metadata = source['metadata']    
+    #print('name: ', metadata['name'])   
+    #print('url: ', metadata['url'])   
+    #print('doc_level: ', metadata['doc_level']) 
+    
+    url = ""
+    if "url" in metadata:
+        url = metadata['url']
+    
+    return source['text'], metadata['name'], url
+
+index_name = vectorIndexName
 def get_answer_using_opensearch(chat, text, connectionId, requestId):    
     global reference_docs
     
-    msg = reference = ""
+    msg = ""
     top_k = 4
     relevant_docs = []
-
-    filtered_docs = grade_documents(text, relevant_docs)
     
-    # duplication checker
-    filtered_docs = check_duplication(filtered_docs)
+    bedrock_embedding = get_embedding()
+    
+    vectorstore_opensearch = OpenSearchVectorSearch(
+        index_name=index_name,
+        #is_aoss = True,
+        #engine="faiss",  # default: nmslib
+        embedding_function = bedrock_embedding,
+        opensearch_url = opensearch_url,
+        http_auth=awsauth,
+        connection_class = RequestsHttpConnection,
+        use_ssl = True,
+        verify_certs = True,
+        http_compress = True,
+    )      
+    
+    if enalbeParentDocumentRetrival == 'true': # parent/child chunking
+        relevant_documents = get_documents_from_opensearch(vectorstore_opensearch, text, top_k)
+                        
+        for i, document in enumerate(relevant_documents):
+            #print(f'## Document(opensearch-vector) {i+1}: {document}')
+            
+            parent_doc_id = document[0].metadata['parent_doc_id']
+            doc_level = document[0].metadata['doc_level']
+            #print(f"child: parent_doc_id: {parent_doc_id}, doc_level: {doc_level}")
+            
+            excerpt, name, url = get_parent_content(parent_doc_id) # use pareant document
+            #print(f"parent_doc_id: {parent_doc_id}, doc_level: {doc_level}, url: {url}, content: {excerpt}")
+            
+            relevant_docs.append(
+                Document(
+                    page_content=excerpt,
+                    metadata={
+                        'name': name,
+                        'url': url,
+                        'doc_level': doc_level,
+                        'from': 'vector'
+                    },
+                )
+            )
+    else: 
+        relevant_documents = vectorstore_opensearch.similarity_search_with_score(
+            query = text,
+            k = top_k,
+        )
+
+    filtered_docs = grade_documents(text, relevant_docs) # grading
+    
+    filtered_docs = check_duplication(filtered_docs) # check duplication
             
     relevant_context = ""
     for i, document in enumerate(filtered_docs):

@@ -26,7 +26,7 @@ const debug = false;
 const stage = 'dev';
 const s3_prefix = 'docs';
 const enableParallelSummary = 'false';
-const enalbeParentDocumentRetrival = 'false';
+const enalbeParentDocumentRetrival = 'true';
 const projectName = `info-analytic-agent`; 
 const bucketName = `storage-for-${projectName}-${accountId}-${region}`; 
 
@@ -669,7 +669,8 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
         LLM_for_multimodal: JSON.stringify(claude3_sonnet),          
         LLM_embedding: JSON.stringify(titan_embedding_v2),
         projectName: projectName,
-        vectorIndexName: vectorIndexName
+        vectorIndexName: vectorIndexName,
+        enalbeParentDocumentRetrival: enalbeParentDocumentRetrival
       }
     });     
     lambdaChatWebsocket.grantInvoke(new iam.ServicePrincipal('apigateway.amazonaws.com'));  

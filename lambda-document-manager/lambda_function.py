@@ -226,12 +226,15 @@ bedrock_embeddings = get_embedding()
 index_name = vectorIndexName
 vectorstore = OpenSearchVectorSearch(
     index_name=index_name,
-    is_aoss = True,
+    #is_aoss = True,
     #engine="faiss",  # default: nmslib
     embedding_function = bedrock_embeddings,
     opensearch_url = opensearch_url,
+    http_auth=awsauth,
     connection_class = RequestsHttpConnection,
-    http_auth=awsauth
+    use_ssl = True,
+    verify_certs = True,
+    http_compress = True,
 )  
 
 def store_document_for_opensearch(file_type, key):
@@ -420,7 +423,7 @@ def create_nori_index():
             },
             'index': {
                 'knn': True,
-                'knn.space_type': 'cosinesimil'  # Example space type
+                'knn.space_type': 'cosinesimil' 
             }
         },
         'mappings': {
