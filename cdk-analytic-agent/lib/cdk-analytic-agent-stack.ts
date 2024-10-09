@@ -25,7 +25,7 @@ const accountId = process.env.CDK_DEFAULT_ACCOUNT;
 const debug = false;
 const stage = 'dev';
 const s3_prefix = 'docs';
-const projectName = `managed-rag-chatbot`; 
+const projectName = `info-analytic-agent`; 
 const bucketName = `storage-for-${projectName}-${accountId}-${region}`; 
 
 const enableReference = 'true';
