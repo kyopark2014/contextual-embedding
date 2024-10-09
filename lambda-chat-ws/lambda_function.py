@@ -788,24 +788,30 @@ def get_documents_from_opensearch(vectorstore_opensearch, query, top_k):
     return relevant_documents
 
 def get_parent_content(parent_doc_id):
-    response = os_client.get(
-        index="*", 
-        id = parent_doc_id
-    )
+    try:
+        response = os_client.get(
+            index=index_name, 
+            id = parent_doc_id
+        )
     
-    source = response['_source']                            
-    # print('parent_doc: ', source['text'])   
+        source = response['_source']                            
+        # print('parent_doc: ', source['text'])   
+        
+        metadata = source['metadata']    
+        #print('name: ', metadata['name'])   
+        #print('url: ', metadata['url'])   
+        #print('doc_level: ', metadata['doc_level']) 
+        
+        url = ""
+        if "url" in metadata:
+            url = metadata['url']        
+        return source['text'], metadata['name'], url
     
-    metadata = source['metadata']    
-    #print('name: ', metadata['name'])   
-    #print('url: ', metadata['url'])   
-    #print('doc_level: ', metadata['doc_level']) 
-    
-    url = ""
-    if "url" in metadata:
-        url = metadata['url']
-    
-    return source['text'], metadata['name'], url
+    except Exception:
+        err_msg = traceback.format_exc()
+        print('error message: ', err_msg)                    
+        # raise Exception ("Not able to request to LLM")
+        return "", "", ""
 
 index_name = vectorIndexName
 def get_answer_using_opensearch(chat, text, connectionId, requestId):    
