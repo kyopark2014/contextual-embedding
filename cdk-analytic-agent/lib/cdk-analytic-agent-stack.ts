@@ -194,7 +194,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
     });
     OpenSearchCollection.addDependency(encPolicy);
 
-    const netPolicyName = `network-policy-${projectName}`
+    const netPolicyName = `network-${projectName}`
     const netPolicy = new opensearchserverless.CfnSecurityPolicy(this, `opensearch-network-security-policy-for-${projectName}`, {
       name: netPolicyName,
       type: 'network',    
@@ -218,7 +218,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
     });
     OpenSearchCollection.addDependency(netPolicy);
 
-    const dataAccessPolicyName = `data-policy-${projectName}`
+    const dataAccessPolicyName = `data-${projectName}`
     const dataAccessPolicy = new opensearchserverless.CfnAccessPolicy(this, `opensearch-data-collection-policy-for-${projectName}`, {
       name: dataAccessPolicyName,
       type: "data",
