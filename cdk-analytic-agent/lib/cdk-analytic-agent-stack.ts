@@ -26,7 +26,7 @@ const debug = false;
 const stage = 'dev';
 const s3_prefix = 'docs';
 const enableParallelSummary = 'false';
-const enalbeParentDocumentRetrival = 'true';
+const enalbeParentDocumentRetrival = 'false';
 const projectName = `info-analytic-agent`; 
 const bucketName = `storage-for-${projectName}-${accountId}-${region}`; 
 
