@@ -218,7 +218,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
     });
     OpenSearchCollection.addDependency(netPolicy);
 
-    const dataAccessPolicyName = `data-collection-policy-for-${projectName}`
+    const dataAccessPolicyName = `data-policy-${projectName}`
     const dataAccessPolicy = new opensearchserverless.CfnAccessPolicy(this, `opensearch-data-collection-policy-for-${projectName}`, {
       name: dataAccessPolicyName,
       type: "data",
