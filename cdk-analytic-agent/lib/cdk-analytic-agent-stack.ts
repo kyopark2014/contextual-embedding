@@ -163,7 +163,7 @@ const titan_embedding_v2 = [  // dimension = 1024
 const LLM_for_chat = claude3_sonnet;
 const LLM_for_multimodal = claude3_sonnet;
 const LLM_embedding = titan_embedding_v2;
-const vectorIndexName = `index-for-${projectName}`
+const vectorIndexName = `${projectName}`
 
 export class CdkAnalyticAgentStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
