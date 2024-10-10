@@ -194,27 +194,33 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
     });
     OpenSearchCollection.addDependency(encPolicy);
 
+    const netPolicyName = `network-policy-${projectName}`
     const netPolicy = new opensearchserverless.CfnSecurityPolicy(this, `opensearch-network-security-policy-for-${projectName}`, {
-      name: `network-policy`,
+      name: netPolicyName,
       type: 'network',    
       description: `opensearch network policy for ${projectName}`,
       policy: JSON.stringify([
         {
           Rules: [
             {
+              ResourceType: "dashboard",
+              Resource: [`collection/${netPolicyName}`],
+            },
+            {
               ResourceType: "collection",
-              Resource: ["collection/*"],              
+              Resource: [`collection/${netPolicyName}`],              
             }
           ],
-          AllowFromPublic: true,          
+          AllowFromPublic: true,
         },
       ]), 
       
     });
     OpenSearchCollection.addDependency(netPolicy);
 
+    const dataAccessPolicyName = `data-collection-policy-for-${projectName}`
     const dataAccessPolicy = new opensearchserverless.CfnAccessPolicy(this, `opensearch-data-collection-policy-for-${projectName}`, {
-      name: `data-collection-policy`,
+      name: dataAccessPolicyName,
       type: "data",
       policy: JSON.stringify([
         {
