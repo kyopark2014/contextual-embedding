@@ -185,8 +185,9 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
       description: 'The endpoint of opensearch correction',
     });
 
+    const encPolicyName = `encription-${projectName}`
     const encPolicy = new opensearchserverless.CfnSecurityPolicy(this, `opensearch-encription-security-policy-for-${projectName}`, {
-      name: `encription-policy`,
+      name: encPolicyName,
       type: "encryption",
       description: `opensearch encryption policy for ${projectName}`,
       policy:
