@@ -170,7 +170,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
     super(scope, id, props);
 
     // OpenSearch Serverless
-    const collectionName = projectName
+    const collectionName = vectorIndexName
     const OpenSearchCollection = new opensearchserverless.CfnCollection(this, `opensearch-correction-for-${projectName}`, {
       name: collectionName,    
       description: `opensearch correction for ${projectName}`,
