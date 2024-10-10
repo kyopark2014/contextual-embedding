@@ -870,6 +870,24 @@ def get_answer_using_opensearch(chat, text, connectionId, requestId):
             query = text,
             k = top_k,
         )
+        
+        for i, document in enumerate(relevant_documents):
+            print(f'## Document(opensearch-vector) {i+1}: {document}')
+            
+            name = document[0].metadata['name']
+            url = document[0].metadata['url']
+            content = document[0].page_content
+                   
+            relevant_docs.append(
+                Document(
+                    page_content=content,
+                    metadata={
+                        'name': name,
+                        'url': url,
+                        'from': 'vector'
+                    },
+                )
+            )
 
     filtered_docs = grade_documents(text, relevant_docs) # grading
     
