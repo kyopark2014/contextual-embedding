@@ -94,6 +94,10 @@ def delete_document_if_exist(metadata_key):
             ids = json.loads(meta)['ids']
             print('ids: ', ids)
             
+            for id in ids:
+                vectorstore.delete(id)
+                
+            
             # delete ids
             result = vectorstore.delete(ids)
             print('result: ', result)   
@@ -505,7 +509,7 @@ def add_to_opensearch(docs, key):
                     
             try:        
                 parent_doc_ids = vectorstore.add_documents(parent_docs, bulk_size = 10000)
-                print('parent_doc_ids: ', parent_doc_ids)
+                print('parent_doc_ids: ', parent_doc_ids) 
                 
                 child_docs = []
                        
