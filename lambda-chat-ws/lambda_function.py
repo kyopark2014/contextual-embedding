@@ -799,10 +799,13 @@ def get_parent_content(parent_doc_id):
                 'size': 5,
                 'query': {
                     # pre_filter={"doc_level": {"$eq": "child"}}
-                    'term': {
-                        'id': {"$eq": parent_doc_id}
-                    }
+                    #'term': {
+                    #    'id': {"$eq": parent_doc_id}
+                    #}
                     #"id": {"$eq": parent_doc_id}
+                    {
+                        "match": {"id": parent_doc_id}
+                    }
                 }
             },
             index = index_name
