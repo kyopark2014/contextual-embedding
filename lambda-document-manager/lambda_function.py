@@ -524,6 +524,7 @@ def add_to_opensearch(docs, key):
             try:        
                 parent_doc_ids = vectorstore.add_documents(parent_docs, bulk_size = 10000)
                 print('parent_doc_ids: ', parent_doc_ids) 
+                print('len(parent_doc_ids): ', len(parent_doc_ids))
                 
                 child_docs = []
                        
@@ -538,6 +539,7 @@ def add_to_opensearch(docs, key):
                 
                 child_doc_ids = vectorstore.add_documents(child_docs, bulk_size = 10000)
                 print('child_doc_ids: ', child_doc_ids) 
+                print('len(child_doc_ids): ', len(child_doc_ids))
                     
                 ids = parent_doc_ids+child_doc_ids
             except Exception:
@@ -564,6 +566,8 @@ def add_to_opensearch(docs, key):
             err_msg = traceback.format_exc()
             print('error message: ', err_msg)
             #raise Exception ("Not able to add docs in opensearch")    
+    
+    print('len(ids): ', len(ids))
     return ids
 
 def extract_images_from_pdf(reader, key):
