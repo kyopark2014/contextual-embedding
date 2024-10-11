@@ -106,12 +106,12 @@ def delete_document_if_exist(metadata_key):
                     },
                     index = index_name
                 )
-                print(f"id: {id}, response:{response}")
+                # print(f"id: {id}, response:{response}")
                         
                 if len(response['hits']['hits']):
                     _id = response['hits']['hits'][0]['_id'] 
                     print('_id: ', _id)      
-                    _ids.append = _id            
+                    _ids.append(_id)
             print('_ids: ', _ids)
             
             # delete ids

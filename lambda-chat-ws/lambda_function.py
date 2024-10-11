@@ -815,15 +815,15 @@ def get_parent_content(parent_doc_id):
             # print('_source: ', _source)            
             if _source:
                 text = _source['text']
-                print('text: ', text[:20])
+                #print('text: ', text[:20])
                 metadata = _source['metadata']
                 
                 name = metadata['name']
-                print('name: ', name)
+                #print('name: ', name)
                 url = metadata['url']
-                print('url: ', url) 
+                #print('url: ', url) 
                 doc_level = metadata['doc_level']
-                print('doc_level: ', doc_level)        
+                #print('doc_level: ', doc_level)        
         return text, name, url
     
     except Exception:
