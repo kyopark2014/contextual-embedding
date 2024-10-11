@@ -803,9 +803,7 @@ def get_parent_content(parent_doc_id):
                     #    'id': {"$eq": parent_doc_id}
                     #}
                     #"id": {"$eq": parent_doc_id}
-                    {
-                        "match": {"id": parent_doc_id}
-                    }
+                    "match": {"id": parent_doc_id}
                 }
             },
             index = index_name
