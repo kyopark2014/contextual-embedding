@@ -812,11 +812,10 @@ def get_parent_content(parent_doc_id):
             print('_id: ', _id)
             
             _source = response['hits']['hits'][0]['_source'] 
-            print('_source: ', _source)
-            
+            # print('_source: ', _source)            
             if _source:
                 text = _source['text']
-                print('text: ', text[:100])
+                print('text: ', text[:20])
                 metadata = _source['metadata']
                 
                 name = metadata['name']
@@ -824,11 +823,7 @@ def get_parent_content(parent_doc_id):
                 url = metadata['url']
                 print('url: ', url) 
                 doc_level = metadata['doc_level']
-                print('doc_level: ', doc_level)
-        
-        url = ""
-        if "url" in metadata:
-            url = metadata['url']        
+                print('doc_level: ', doc_level)        
         return text, name, url
     
     except Exception:

@@ -94,12 +94,28 @@ def delete_document_if_exist(metadata_key):
             ids = json.loads(meta)['ids']
             print('ids: ', ids)
             
+            _ids = []
             for id in ids:
-                vectorstore.delete(id)
-                
+                response = os_client.search(
+                    body = {
+                        'size': 1,
+                        'query': {
+                            "match": {"id": id}
+                            #"term": {"query": parent_doc_id}
+                        }
+                    },
+                    index = index_name
+                )
+                print(f"id: {id}, response:{response}")
+                        
+                if len(response['hits']['hits']):
+                    _id = response['hits']['hits'][0]['_id'] 
+                    print('_id: ', _id)      
+                    _ids.append = _id            
+            print('_ids: ', _ids)
             
             # delete ids
-            result = vectorstore.delete(ids)
+            result = vectorstore.delete(_ids)
             print('result: ', result)   
             
             # delete files 
