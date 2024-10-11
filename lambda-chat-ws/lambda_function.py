@@ -798,17 +798,13 @@ def get_parent_content(parent_doc_id):
             body = {
                 'size': 1,
                 'query': {
-                    #"match": {"id": parent_doc_id}
-                    "term": {
-                        "id": {
-                            "value": parent_doc_id
-                        }
-                    }
+                    "match": {"id": parent_doc_id}
+                    #"term": {"query": parent_doc_id}
                 }
             },
             index = index_name
         )
-        print(f"parent_doc_id: {parent_doc_id}, response:{response}")
+        # print(f"parent_doc_id: {parent_doc_id}, response:{response}")
         
         text = name = url = ""
         if len(response['hits']['hits']):
