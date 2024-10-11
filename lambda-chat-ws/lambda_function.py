@@ -796,10 +796,10 @@ def get_parent_content(parent_doc_id):
     try:
         response = os_client.search(
             body = {
-                'size': 5,
+                'size': 1,
                 'query': {
-                    #"match": {"id": parent_doc_id}
-                    "term": {"id": parent_doc_id}
+                    "match": {"id": parent_doc_id}
+                    #"term": {"id": parent_doc_id}
                 }
             },
             index = index_name
