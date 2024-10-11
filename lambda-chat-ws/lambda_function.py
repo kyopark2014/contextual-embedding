@@ -798,36 +798,37 @@ def get_parent_content(parent_doc_id):
             body = {
                 'size': 5,
                 'query': {
-                    # pre_filter={"doc_level": {"$eq": "child"}}
-                    #'term': {
-                    #    'id': {"$eq": parent_doc_id}
-                    #}
-                    #"id": {"$eq": parent_doc_id}
                     "match": {"id": parent_doc_id}
                 }
             },
             index = index_name
         )
         print(f"parent_doc_id: {parent_doc_id}, response:{response}")
-                
-        response2 = os_client.get( 
-            index=index_name, 
-            id = parent_doc_id
-        )
-        print(f"GET parent_doc_id: {parent_doc_id}, response:{response2}")        
-    
-        source = response['_source']                            
-        # print('parent_doc: ', source['text'])   
         
-        metadata = source['metadata']    
-        #print('name: ', metadata['name'])   
-        #print('url: ', metadata['url'])   
-        #print('doc_level: ', metadata['doc_level']) 
+        text = name = url = ""
+        if len(_id = response['hits']['hits']):
+            _id = response['hits']['hits'][0]['_id'] 
+            print('_id: ', _id)
+            
+            _source = response['hits']['hits'][0]['_source'] 
+            print('_source: ', _source)
+            
+            if _source:
+                text = _source['text']
+                print('text: ', text)
+                metadata = _source['metadata']
+                
+                name = metadata['name']
+                print('name: ', name)
+                url = metadata['url']
+                print('url: ', url)
+                doc_level = metadata['doc_level']
+                print('doc_level: ', doc_level)
         
         url = ""
         if "url" in metadata:
             url = metadata['url']        
-        return source['text'], metadata['name'], url
+        return text, name, url
     
     except Exception:
         err_msg = traceback.format_exc()
