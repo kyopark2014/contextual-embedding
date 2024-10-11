@@ -800,7 +800,7 @@ def get_parent_content(parent_doc_id):
                 'query': {
                     # pre_filter={"doc_level": {"$eq": "child"}}
                     'term': {
-                        'id': parent_doc_id
+                        'id': {"$eq": parent_doc_id}
                     }
                     #"id": {"$eq": parent_doc_id}
                 }
