@@ -458,8 +458,8 @@ def create_nori_index():
             print('error message: ', err_msg)                
             #raise Exception ("Not able to create the index")
 
-#if enableHybridSearch == 'true':
-#    create_nori_index()
+if enableHybridSearch == 'true':
+    create_nori_index()
     
 def add_to_opensearch(docs, key):    
     if len(docs) == 0:

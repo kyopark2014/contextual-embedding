@@ -802,7 +802,7 @@ def get_parent_content(parent_doc_id):
                 }
             }
         }
-        response = client.search(
+        response = os_client.search(
             body = query,
             index = index_name
         )
