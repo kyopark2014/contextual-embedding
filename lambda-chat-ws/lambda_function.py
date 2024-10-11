@@ -808,11 +808,11 @@ def get_parent_content(parent_doc_id):
         )
         print(f"parent_doc_id: {parent_doc_id}, response:{response}")
                 
-        response = os_client.get( 
+        response2 = os_client.get( 
             index=index_name, 
             id = parent_doc_id
         )
-        print(f"GET parent_doc_id: {parent_doc_id}, response:{response}")        
+        print(f"GET parent_doc_id: {parent_doc_id}, response:{response2}")        
     
         source = response['_source']                            
         # print('parent_doc: ', source['text'])   
