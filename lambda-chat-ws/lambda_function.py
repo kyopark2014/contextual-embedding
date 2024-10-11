@@ -277,7 +277,7 @@ def initiate_opensearch():
                 }
             }
         }
-            
+
         try: # create index
             response = os_client.indices.create(
                 vectorIndexName,
