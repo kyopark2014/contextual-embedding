@@ -794,10 +794,25 @@ def get_documents_from_opensearch(vectorstore_opensearch, query, top_k):
 
 def get_parent_content(parent_doc_id):
     try:
+        query = {
+            'size': 5,
+            'query': {
+                'term': {
+                    'id': parent_doc_id
+                }
+            }
+        }
+        response = client.search(
+            body = query,
+            index = index_name
+        )
+        print(f"parent_doc_id: {parent_doc_id}, response:{response}")
+                
         response = os_client.get(
             index=index_name, 
             id = parent_doc_id
         )
+        print(f"GET parent_doc_id: {parent_doc_id}, response:{response}")        
     
         source = response['_source']                            
         # print('parent_doc: ', source['text'])   
