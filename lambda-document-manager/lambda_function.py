@@ -395,8 +395,10 @@ def is_not_exist(index_name):
         return True
     
 def create_nori_index():
-    index_body = {
-        'settings': {
+    index_body={
+        'settings':{
+            "index.knn": True,
+            "index.knn.algo_param.ef_search": 512,
             'analysis': {
                 'analyzer': {
                     'my_analyzer': {
@@ -425,31 +427,20 @@ def create_nori_index():
                     }
                 }
             },
-            'index': {
-                'knn': True,
-                'knn.space_type': 'cosinesimil' 
-            }
         },
         'mappings': {
             'properties': {
-                'metadata': {
-                    'properties': {
-                        'source' : {'type': 'keyword'},                    
-                        'last_updated': {'type': 'date'},
-                        'project': {'type': 'keyword'},
-                        'seq_num': {'type': 'long'},
-                        'title': {'type': 'text'},  # For full-text search
-                        'url': {'type': 'text'},  # For full-text search
-                    }
-                },            
-                'text': {
-                    'analyzer': 'my_analyzer',
-                    'search_analyzer': 'my_analyzer',
-                    'type': 'text'
-                },
                 'vector_field': {
                     'type': 'knn_vector',
-                    'dimension': 1024
+                    'dimension': 1024,
+                    'method': {
+                        "name": "hnsw",
+                        "engine": "faiss",
+                        "parameters": {
+                            "ef_construction": 512,
+                            "m": 16
+                        }
+                    }                  
                 }
             }
         }
@@ -467,8 +458,8 @@ def create_nori_index():
             print('error message: ', err_msg)                
             #raise Exception ("Not able to create the index")
 
-if enableHybridSearch == 'true':
-    create_nori_index()
+#if enableHybridSearch == 'true':
+#    create_nori_index()
     
 def add_to_opensearch(docs, key):    
     if len(docs) == 0:
