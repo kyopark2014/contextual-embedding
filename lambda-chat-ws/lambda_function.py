@@ -808,7 +808,7 @@ def get_parent_content(parent_doc_id):
             },
             index = index_name
         )
-        # print(f"parent_doc_id: {parent_doc_id}, response:{response}")
+        print(f"parent_doc_id: {parent_doc_id}, response:{response}")
         
         text = name = url = ""
         if len(response['hits']['hits']):
