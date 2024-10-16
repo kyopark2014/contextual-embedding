@@ -315,7 +315,7 @@ def initiate_opensearch():
 
 initiate_opensearch()
 
-def delete_opensearch_index():
+def reflash_opensearch_index():
     #########################
     # opensearch index (create)
     #########################
@@ -323,12 +323,14 @@ def delete_opensearch_index():
     
     try: # create index
         response = os_client.indices.delete(
-            index_name = index_name
+            index_name
         )
         print('opensearch index was deleted:', response)
 
         # delay 3seconds
-        time.sleep(5)
+        time.sleep(60)
+        
+        initiate_opensearch()
     except Exception:
         err_msg = traceback.format_exc()
         print('error message: ', err_msg)                
@@ -1838,9 +1840,10 @@ def getResponse(connectionId, jsonBody):
         msg += f"current model: {modelId}"
         print('model lists: ', msg)    
         
-    elif type == 'text' and body[:20] == 'delete current index':
+    elif type == 'text' and body[:20] == 'reflash current index':
         # delete index
-        delete_opensearch_index()
+        reflash_opensearch_index()
+        msg = "The index was reflashed in OpenSearch."
         
     else:             
         if type == 'text':
