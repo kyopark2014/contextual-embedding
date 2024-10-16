@@ -9,6 +9,7 @@ import re
 import traceback
 import base64
 import operator
+import requests
 
 from botocore.config import Config
 from io import BytesIO
@@ -243,7 +244,7 @@ def is_not_exist(index_name):
     
 def initiate_opensearch():
     #########################
-    # opensearch index
+    # opensearch index (create)
     #########################
     if(is_not_exist(vectorIndexName)):
         print(f"creating opensearch index... {vectorIndexName}")        
@@ -313,6 +314,25 @@ def initiate_opensearch():
             #raise Exception ("Not able to create the index")
 
 initiate_opensearch()
+
+def delete_opensearch_index()():
+    #########################
+    # opensearch index (create)
+    #########################
+    print(f"deleting opensearch index... {vectorIndexName}") 
+    
+    try: # create index
+        response = os_client.indices.delete(
+            index_name = index_name
+        )
+        print('opensearch index was deleted:', response)
+
+        # delay 3seconds
+        time.sleep(5)
+    except Exception:
+        err_msg = traceback.format_exc()
+        print('error message: ', err_msg)                
+        #raise Exception ("Not able to create the index")
    
 # websocket
 connection_url = os.environ.get('connection_url')
@@ -1817,6 +1837,11 @@ def getResponse(connectionId, jsonBody):
         
         msg += f"current model: {modelId}"
         print('model lists: ', msg)    
+        
+    elif type == 'text' and body[:20] == 'delete current index':
+        # delete index
+        delete_opensearch_index()()
+        
     else:             
         if type == 'text':
             text = body
