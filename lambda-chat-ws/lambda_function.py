@@ -315,7 +315,7 @@ def initiate_opensearch():
 
 initiate_opensearch()
 
-def delete_opensearch_index()():
+def delete_opensearch_index():
     #########################
     # opensearch index (create)
     #########################
@@ -1840,7 +1840,7 @@ def getResponse(connectionId, jsonBody):
         
     elif type == 'text' and body[:20] == 'delete current index':
         # delete index
-        delete_opensearch_index()()
+        delete_opensearch_index()
         
     else:             
         if type == 'text':
