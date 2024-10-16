@@ -1840,7 +1840,7 @@ def getResponse(connectionId, jsonBody):
         msg += f"current model: {modelId}"
         print('model lists: ', msg)    
         
-    elif type == 'text' and body[:20] == 'reflash current index':
+    elif type == 'text' and body[:21] == 'reflash current index':
         # delete index
         reflash_opensearch_index()
         msg = "The index was reflashed in OpenSearch."
