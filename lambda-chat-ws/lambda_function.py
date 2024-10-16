@@ -30,6 +30,12 @@ from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
 from langchain_community.vectorstores.opensearch_vector_search import OpenSearchVectorSearch
 from langchain_aws import BedrockEmbeddings
 
+from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode
+from langchain.agents import tool
+from bs4 import BeautifulSoup
+from pytz import timezone
+
 s3 = boto3.client('s3')
 s3_bucket = os.environ.get('s3_bucket') # bucket name
 s3_prefix = os.environ.get('s3_prefix')
@@ -88,8 +94,9 @@ multi_region = 'disable'
 reference_docs = []
 
 tavily_api_key = ""
+weather_api_key = ""
 def load_secrets():
-    global tavily_api_key
+    global tavily_api_key, weather_api_key
     secretsmanager = boto3.client('secretsmanager')
     
     # api key to use LangSmith
@@ -125,6 +132,19 @@ def load_secrets():
             tavily_api_key = json.loads(secret['tavily_api_key'])
             # print('tavily_api_key: ', tavily_api_key)
     except Exception as e: 
+        raise e
+    
+    try:
+        get_weather_api_secret = secretsmanager.get_secret_value(
+            SecretId=f"openweathermap-{projectName}"
+        )
+        #print('get_weather_api_secret: ', get_weather_api_secret)
+        
+        secret = json.loads(get_weather_api_secret['SecretString'])
+        #print('secret: ', secret)
+        weather_api_key = secret['weather_api_key']
+        
+    except Exception as e:
         raise e
 load_secrets()
 
