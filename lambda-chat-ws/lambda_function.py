@@ -328,7 +328,7 @@ def reflash_opensearch_index():
         print('opensearch index was deleted:', response)
 
         # delay 3seconds
-        time.sleep(60)
+        time.sleep(30)
         
         initiate_opensearch()
     except Exception:
@@ -807,7 +807,7 @@ def get_documents_from_opensearch(vectorstore_opensearch, query, top_k):
     result = vectorstore_opensearch.similarity_search_with_score(
         query = query,
         k = top_k*2,  
-        pre_filter={"doc_level": {"$eq": "child"}}
+        pre_filter={"doc_level": {"$eq": "parent"}}
     )
     print('result: ', result)
             
@@ -1841,7 +1841,8 @@ def getResponse(connectionId, jsonBody):
         print('model lists: ', msg)    
         
     elif type == 'text' and body[:21] == 'reflash current index':
-        # delete index
+        # reflash index
+        isTyping(connectionId, requestId)
         reflash_opensearch_index()
         msg = "The index was reflashed in OpenSearch."
         
