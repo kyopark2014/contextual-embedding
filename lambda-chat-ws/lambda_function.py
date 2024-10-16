@@ -922,6 +922,384 @@ def get_answer_using_opensearch(chat, text, connectionId, requestId):
            
     return msg
 
+####################### LangGraph #######################
+# Chat Agent Executor
+#########################################################
+
+@tool
+def get_current_time(format: str=f"%Y-%m-%d %H:%M:%S")->str:
+    """Returns the current date and time in the specified format"""
+    print("###### get_current_time ######")
+    # f"%Y-%m-%d %H:%M:%S"
+    
+    format = format.replace('\'','')
+    timestr = datetime.datetime.now(timezone('Asia/Seoul')).strftime(format)
+    # print('timestr:', timestr)
+    
+    return timestr
+
+def get_lambda_client(region):
+    return boto3.client(
+        service_name='lambda',
+        region_name=region
+    )
+
+@tool 
+def get_book_list(keyword: str) -> str:
+    """
+    Search book list by keyword and then return book list
+    keyword: search keyword
+    return: book list
+    """
+    print("###### get_book_list ######")
+    
+    keyword = keyword.replace('\'','')
+
+    answer = ""
+    url = f"https://search.kyobobook.co.kr/search?keyword={keyword}&gbCode=TOT&target=total"
+    response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, "html.parser")
+        prod_info = soup.find_all("a", attrs={"class": "prod_info"})
+        
+        if len(prod_info):
+            answer = "추천 도서는 아래와 같습니다.\n"
+            
+        for prod in prod_info[:5]:
+            title = prod.text.strip().replace("\n", "")       
+            link = prod.get("href")
+            answer = answer + f"{title}, URL: {link}\n\n"
+    
+    return answer
+
+@tool
+def get_weather_info(city: str) -> str:
+    """
+    retrieve weather information by city name and then return weather statement.
+    city: the name of city to retrieve
+    return: weather statement
+    """    
+    print("###### get_weather_info ######")
+    
+    city = city.replace('\n','')
+    city = city.replace('\'','')
+    city = city.replace('\"','')
+                
+    chat = get_chat()
+    if isKorean(city):
+        place = traslation(chat, city, "Korean", "English")
+        print('city (translated): ', place)
+    else:
+        place = city
+        city = traslation(chat, city, "English", "Korean")
+        print('city (translated): ', city)
+        
+    print('place: ', place)
+    
+    weather_str: str = f"{city}에 대한 날씨 정보가 없습니다."
+    if weather_api_key: 
+        apiKey = weather_api_key
+        lang = 'en' 
+        units = 'metric' 
+        api = f"https://api.openweathermap.org/data/2.5/weather?q={place}&APPID={apiKey}&lang={lang}&units={units}"
+        # print('api: ', api)
+                
+        try:
+            result = requests.get(api)
+            result = json.loads(result.text)
+            print('result: ', result)
+        
+            if 'weather' in result:
+                overall = result['weather'][0]['main']
+                current_temp = result['main']['temp']
+                min_temp = result['main']['temp_min']
+                max_temp = result['main']['temp_max']
+                humidity = result['main']['humidity']
+                wind_speed = result['wind']['speed']
+                cloud = result['clouds']['all']
+                
+                weather_str = f"{city}의 현재 날씨의 특징은 {overall}이며, 현재 온도는 {current_temp}도 이고, 최저온도는 {min_temp}도, 최고 온도는 {max_temp}도 입니다. 현재 습도는 {humidity}% 이고, 바람은 초당 {wind_speed} 미터 입니다. 구름은 {cloud}% 입니다."
+                #weather_str = f"Today, the overall of {city} is {overall}, current temperature is {current_temp} degree, min temperature is {min_temp} degree, highest temperature is {max_temp} degree. huminity is {humidity}%, wind status is {wind_speed} meter per second. the amount of cloud is {cloud}%."            
+        except Exception:
+            err_msg = traceback.format_exc()
+            print('error message: ', err_msg)                    
+            # raise Exception ("Not able to request to LLM")    
+        
+    print('weather_str: ', weather_str)                            
+    return weather_str
+
+@tool
+def search_by_tavily(keyword: str) -> str:
+    """
+    Search general information by keyword and then return the result as a string.
+    keyword: search keyword which is greater than the minimum of 4 characters
+    return: the information of keyword
+    """    
+    print("###### search_by_tavily ######")
+    
+    global reference_docs, selected_tavily
+    
+    docs = []
+    if selected_tavily != -1:
+        selected_tavily = selected_tavily + 1
+        if selected_tavily == len(tavily_api_key):
+            selected_tavily = 0
+
+        try:
+            tavily_client = TavilyClient(api_key=tavily_api_key[selected_tavily])
+            response = tavily_client.search(keyword, max_results=3)
+            # print('tavily response: ', response)
+            
+            print(f"--> tavily search result: {keyword}")
+            for i, r in enumerate(response["results"]):
+                content = r.get("content")
+                print(f"{i}: {content}")
+
+                name = r.get("title")
+                if name is None:
+                    name = 'WWW'
+                    
+                url = ""
+                if "url" in r:
+                    url = r.get("url")
+            
+                docs.append(
+                    Document(
+                        page_content=content,
+                        metadata={
+                            'name': name,
+                            'url': url,
+                            'from': 'tavily'
+                        },
+                    )
+                )   
+        except Exception as e:
+            print('Exception: ', e)
+        
+        filtered_docs = grade_documents(keyword, docs)
+        
+        # duplication checker
+        filtered_docs = check_duplication(filtered_docs)
+        
+    relevant_context = ""
+    for i, document in enumerate(filtered_docs):
+        print(f"{i}: {document}")
+        if document.page_content:
+            content = document.page_content
+            
+        relevant_context = relevant_context + content + "\n\n"        
+    print('relevant_context: ', relevant_context)
+        
+    reference_docs += filtered_docs
+        
+    return relevant_context
+
+@tool    
+def search_by_opensearch(keyword: str) -> str:
+    """
+    Search information of company by keyword and then return the result as a string.
+    keyword: search keyword
+    return: the technical information of keyword
+    """    
+    global reference_docs
+    
+    print('keyword: ', keyword)
+    keyword = keyword.replace('\'','')
+    keyword = keyword.replace('|','')
+    keyword = keyword.replace('\n','')
+    print('modified keyword: ', keyword)
+    
+    bedrock_embedding = get_embedding()
+        
+    vectorstore_opensearch = OpenSearchVectorSearch(
+        index_name=index_name,
+        #is_aoss = True,
+        #engine="faiss",  # default: nmslib
+        embedding_function = bedrock_embedding,
+        opensearch_url = opensearch_url,
+        http_auth=awsauth,
+        connection_class = RequestsHttpConnection,
+        use_ssl = True,
+        verify_certs = True,
+        http_compress = True,
+    ) 
+    
+    top_k = 2    
+    relevant_docs = [] 
+    if enalbeParentDocumentRetrival == 'true': # parent/child chunking
+        relevant_documents = get_documents_from_opensearch(vectorstore_opensearch, keyword, top_k)
+                        
+        for i, document in enumerate(relevant_documents):
+            #print(f'## Document(opensearch-vector) {i+1}: {document}')
+            
+            parent_doc_id = document[0].metadata['parent_doc_id']
+            doc_level = document[0].metadata['doc_level']
+            #print(f"child: parent_doc_id: {parent_doc_id}, doc_level: {doc_level}")
+            
+            excerpt, name, url = get_parent_content(parent_doc_id) # use pareant document
+            #print(f"parent_doc_id: {parent_doc_id}, doc_level: {doc_level}, url: {url}, content: {excerpt}")
+            
+            relevant_docs.append(
+                Document(
+                    page_content=excerpt,
+                    metadata={
+                        'name': name,
+                        'url': url,
+                        'doc_level': doc_level,
+                        'from': 'vector'
+                    },
+                )
+            )
+    else: 
+        relevant_documents = vectorstore_opensearch.similarity_search_with_score(
+            query = keyword,
+            k = top_k,
+        )
+
+        for i, document in enumerate(relevant_documents):
+            #print(f'## Document(opensearch-vector) {i+1}: {document}')
+            
+            excerpt = document[0].page_content
+            
+            url = ""
+            if "url" in document[0].metadata:
+                url = document[0].metadata['url']
+                
+            name = document[0].metadata['name']
+            
+            relevant_docs.append(
+                Document(
+                    page_content=excerpt,
+                    metadata={
+                        'name': name,
+                        'url': url,
+                        'from': 'vector'
+                    },
+                )
+            )
+    
+    #if enableHybridSearch == 'true':
+    #    relevant_docs = relevant_docs + lexical_search_for_tool(keyword, top_k)
+    
+    print('doc length: ', len(relevant_docs))
+                
+    filtered_docs = grade_documents(keyword, relevant_docs)  # grading
+    
+    filtered_docs = check_duplication(filtered_docs) # check duplication
+    
+    for i, doc in enumerate(filtered_docs):
+        if len(doc.page_content)>=100:
+            text = doc.page_content[:100]
+        else:
+            text = doc.page_content
+            
+        print(f"filtered doc[{i}]: {text}, metadata:{doc.metadata}")
+       
+    relevant_context = "" 
+    for doc in filtered_docs:
+        content = doc.page_content
+        
+        relevant_context = relevant_context + f"{content}\n\n"
+        
+    reference_docs += filtered_docs
+        
+    return relevant_context
+
+def run_agent_executor(connectionId, requestId, query):
+    chatModel = get_chat() 
+    tools = [get_current_time, get_book_list, get_weather_info, search_by_tavily, search_by_opensearch]
+
+    model = chatModel.bind_tools(tools)
+
+    class State(TypedDict):
+        # messages: Annotated[Sequence[BaseMessage], operator.add]
+        messages: Annotated[list, add_messages]
+
+    tool_node = ToolNode(tools)
+
+    def should_continue(state: State) -> Literal["continue", "end"]:
+        print("###### should_continue ######")
+        messages = state["messages"]    
+        # print('(should_continue) messages: ', messages)
+        
+        last_message = messages[-1]
+                
+        if not last_message.tool_calls:
+            next = "end"
+        else:           
+            next = "continue"     
+        
+        print(f"should_continue response: {next}")
+        return next
+
+    def call_model(state: State):
+        print("###### call_model ######")
+        # print('state: ', state["messages"])
+        
+        if isKorean(state["messages"][0].content)==True:
+            system = (
+                "당신의 이름은 서연이고, 질문에 친근한 방식으로 대답하도록 설계된 대화형 AI입니다."
+                "상황에 맞는 구체적인 세부 정보를 충분히 제공합니다."
+                "모르는 질문을 받으면 솔직히 모른다고 말합니다."
+                "최종 답변에는 조사한 내용을 반드시 포함합니다."
+            )
+        else: 
+            system = (            
+                "You are a conversational AI designed to answer in a friendly way to a question."
+                "If you don't know the answer, just say that you don't know, don't try to make up an answer."
+                "You will be acting as a thoughtful advisor."    
+            )
+            
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system),
+                MessagesPlaceholder(variable_name="messages"),
+            ]
+        )
+        chain = prompt | model
+            
+        response = chain.invoke(state["messages"])
+        print('call_model response: ', response.tool_calls)
+        
+        return {"messages": [response]}
+
+    def buildChatAgent():
+        workflow = StateGraph(State)
+
+        workflow.add_node("agent", call_model)
+        workflow.add_node("action", tool_node)
+        workflow.add_edge(START, "agent")
+        workflow.add_conditional_edges(
+            "agent",
+            should_continue,
+            {
+                "continue": "action",
+                "end": END,
+            },
+        )
+        workflow.add_edge("action", "agent")
+
+        return workflow.compile()
+
+    app = buildChatAgent()
+        
+    isTyping(connectionId, requestId, "")
+    
+    inputs = [HumanMessage(content=query)]
+    config = {"recursion_limit": 50}
+    
+    message = ""
+    for event in app.stream({"messages": inputs}, config, stream_mode="values"):   
+        # print('event: ', event)
+        
+        message = event["messages"][-1]
+        # print('message: ', message)
+
+    msg = readStreamMsg(connectionId, requestId, message.content)
+    
+    # print('reference_docs: ', reference_docs)
+    return msg
+
 #########################################################
 
 contentList = []
