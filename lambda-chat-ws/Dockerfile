@@ -19,6 +19,7 @@ RUN /var/lang/bin/python3 -m pip install langgraph
 RUN /var/lang/bin/python3 -m pip install opensearch-py
 RUN /var/lang/bin/python3 -m pip install langgraph
 RUN /var/lang/bin/python3 -m pip install beautifulsoup4
+RUN /var/lang/bin/python3 -m pip install pytz
 
 RUN /var/lang/bin/python3 -m pip install botocore --upgrade
 RUN /var/lang/bin/python3 -m pip install boto3 --upgrade
