@@ -9,6 +9,9 @@
 여기서는 정보를 분석하는 Agent 구현하기에 대해 설명합니다.
 
 
+## Contextualized Chunk
+
+[Contextual Chunk Header](./contextual-chunk-headers.md)와 [Contextual Retrieval](./contextual-retrieval.md)와 같이 문서를 chunk할 때에 chunk에 대한 설명을 포함하면 검색의 정확도를 높일 수 있습니다. 
 
 
 
