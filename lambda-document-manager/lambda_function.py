@@ -6,6 +6,7 @@ import time
 import docx
 import base64
 import fitz
+import re
 
 from io import BytesIO
 from urllib import parse
@@ -525,20 +526,46 @@ def create_nori_index():
 if enableHybridSearch == 'true':
     create_nori_index()
 
+def isKorean(text):
+    # check korean
+    pattern_hangul = re.compile('[\u3131-\u3163\uac00-\ud7a3]+')
+    word_kor = pattern_hangul.search(str(text))
+    # print('word_kor: ', word_kor)
+
+    if word_kor and word_kor != 'None':
+        print('Korean: ', word_kor)
+        return True
+    else:
+        print('Not Korean: ', word_kor)
+        return False
+    
 def get_contexual_docs(whole_doc, splitted_docs):
-    contextual_template = (
-        "<document>"
-        "{WHOLE_DOCUMENT}"
-        "</document>"
-        "Here is the chunk we want to situate within the whole document"
-        "<chunk>"
-        "{CHUNK_CONTENT}"
-        "</chunk>"
-        "Please give a short succinct context to situate this chunk within the overall document "
-        "for the purposes of improving search retrieval of the chunk."
-        "Answer only with the succinct context and nothing else."
-        "Put it in <result> tags."
-    )
+    if isKorean(doc.page_content)==True:
+        contextual_template = (
+            "<document>"
+            "{WHOLE_DOCUMENT}"
+            "</document>"
+            "아래 <chunk>는 전체 문서의 일부 내용입니다."
+            "<chunk>"
+            "{CHUNK_CONTENT}"
+            "</chunk>"
+            "검색 검색 결과의 검색 가능성을 높이기 위해서, 문서 전체 내용에서 이 부분의 상황을 간단하고 명확하게 설명해 주시기 바랍니다."
+            "답변은 간단한 문맥만 포함하고 다른 것은 포함하지 않습니다."
+            "결과는 <result> tag를 붙여주세요."
+        )
+    else:
+        contextual_template = (
+            "<document>"
+            "{WHOLE_DOCUMENT}"
+            "</document>"
+            "Here is the chunk we want to situate within the whole document."
+            "<chunk>"
+            "{CHUNK_CONTENT}"
+            "</chunk>"
+            "Please give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval of the chunk."
+            "Answer only with the succinct context and nothing else."
+            "Put it in <result> tags."
+        )      
     
     contextual_prompt = ChatPromptTemplate([
         ('human', contextual_template)
@@ -621,6 +648,11 @@ def add_to_opensearch(docs, key):
                     for _doc in sub_docs:
                         _doc.metadata["parent_doc_id"] = _id
                         _doc.metadata["doc_level"] = "child"
+                        
+                    print('chunk[0]: ', sub_docs[0].page_content)                      
+                    sub_docs = get_contexual_docs(docs[-1], sub_docs)
+                    print('contextual chunk[0]: ', sub_docs[0].page_content)  
+                
                     child_docs.extend(sub_docs)
                 # print('child_docs: ', child_docs)
                 
@@ -646,11 +678,11 @@ def add_to_opensearch(docs, key):
             
         if len(documents):            
             if enableContexualRetrieval == 'true':                        
-                print('(before) documents[0]: ', documents[0])                      
+                print('chunk[0]: ', documents[0].page_content)             
                 documents = get_contexual_docs(docs[-1], documents)
-                print('(after) documents[0]: ', documents[0])  
+                print('contextual chunk[0]: ', documents[0].page_content)  
             else:
-                print('documents[0]: ', documents[0])      
+                print('documents[0]: ', documents[0])
             
         try:        
             ids = vectorstore.add_documents(documents, bulk_size = 10000)
