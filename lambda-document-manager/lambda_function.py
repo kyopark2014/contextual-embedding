@@ -483,6 +483,52 @@ def create_nori_index():
 
 if enableHybridSearch == 'true':
     create_nori_index()
+
+enableContexualRetrieval = 'true'
+def get_contexual_docs(whole_doc, splitted_docs):
+    contextual_template = (
+        "<document>"
+        "{WHOLE_DOCUMENT}"
+        "</document>"
+        "Here is the chunk we want to situate within the whole document"
+        "<chunk>"
+        "{CHUNK_CONTENT}"
+        "</chunk>"
+        "Please give a short succinct context to situate this chunk within the overall document "
+        "for the purposes of improving search retrieval of the chunk."
+        "Answer only with the succinct context and nothing else."
+        "Put it in <result> tags."
+    )
+    
+    contextual_prompt = ChatPromptTemplate([
+        ('human', contextual_template)
+    ])
+    
+    docs = []
+    for i, doc in enumerate(splitted_docs):
+        
+        chat = get_chat()
+        contexual_chain = contextual_prompt | chat
+            
+        response = contexual_chain.invoke(
+            {
+                "WHOLE_DOCUMENT": whole_doc.page_content,
+                "CHUNK_CONTENT": doc.page_content
+            }
+        )
+        print('--> contexual chunk: ', response)
+        output = response[response.find('<result>')+8:len(response)-9]
+        
+        print(f"--> {i}: original_chunk: {doc.page_content}")        
+        print(f"--> {i}: contexualized_chunk: {output}")
+        
+        docs.append(
+            Document(
+                page_content=output,
+                metadata=doc.metadata
+            )
+        )
+    return docs
     
 def add_to_opensearch(docs, key):    
     if len(docs) == 0:
@@ -557,7 +603,24 @@ def add_to_opensearch(docs, key):
         documents = text_splitter.split_documents(docs)
         print('len(documents): ', len(documents))
         if len(documents):
-            print('documents[0]: ', documents[0])        
+            print('documents[0]: ', documents[0])      
+        
+        if enableContexualRetrieval == 'true':        
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=100,
+                separators=["\n\n", "\n", ".", " ", ""],
+                length_function = len,
+            ) 
+            
+            documents = text_splitter.split_documents(docs)
+            print('len(documents): ', len(documents))
+            if len(documents):
+                print('(before) documents[0]: ', documents[0])      
+                
+            documents = get_contexual_docs(docs, documents)  
+            if len(documents):
+                print('(after) documents[0]: ', documents[0])  
             
         try:        
             ids = vectorstore.add_documents(documents, bulk_size = 10000)
