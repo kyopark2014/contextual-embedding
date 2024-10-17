@@ -556,7 +556,7 @@ def get_contexual_docs(whole_doc, splitted_docs):
                 "CHUNK_CONTENT": doc.page_content
             }
         )
-        print('--> contexual chunk: ', response)
+        # print('--> contexual chunk: ', response)
         output = response.content
         contextualized_chunk = output[output.find('<result>')+8:len(output)-9]
         
@@ -565,7 +565,7 @@ def get_contexual_docs(whole_doc, splitted_docs):
         
         docs.append(
             Document(
-                page_content=contextualized_chunk,
+                page_content=contextualized_chunk+"\n\n"+doc.page_content,
                 metadata=doc.metadata
             )
         )
