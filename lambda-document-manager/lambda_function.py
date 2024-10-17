@@ -602,25 +602,14 @@ def add_to_opensearch(docs, key):
         
         documents = text_splitter.split_documents(docs)
         print('len(documents): ', len(documents))
-        if len(documents):
-            print('documents[0]: ', documents[0])      
-        
-        if enableContexualRetrieval == 'true':        
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000,
-                chunk_overlap=100,
-                separators=["\n\n", "\n", ".", " ", ""],
-                length_function = len,
-            ) 
             
-            documents = text_splitter.split_documents(docs)
-            print('len(documents): ', len(documents))
-            if len(documents):
-                print('(before) documents[0]: ', documents[0])      
-                
-            documents = get_contexual_docs(docs, documents)  
-            if len(documents):
+        if len(documents):            
+            if enableContexualRetrieval == 'true':                        
+                print('(before) documents[0]: ', documents[0])                      
+                documents = get_contexual_docs(docs[-1], documents)
                 print('(after) documents[0]: ', documents[0])  
+            else:
+                print('documents[0]: ', documents[0])      
             
         try:        
             ids = vectorstore.add_documents(documents, bulk_size = 10000)
