@@ -12,6 +12,10 @@
 
 
 
-# Header/Footer
+### Header/Footer
 
 [PDF에서 Header와 Footer 처리](https://github.com/kyopark2014/korean-chatbot-using-amazon-bedrock/blob/main/pdf-header-footer.md)와 같이 Rect를 이용해 pdf에서 header와 footer를 정의합니다.
+
+### 문서 삭제시 주의점
+
+[LangChain 함수로 add_documents 수행시 OpenSearch Serverless와 Managed의 동작 비교](./langchain-and-opensearch-serverless-issue.md)와 같이 버그성으로 보이는 id 이슈가 있어서 LangChain이 업데이트가 되면 코드 수정이 필요할 수 있습니다.
