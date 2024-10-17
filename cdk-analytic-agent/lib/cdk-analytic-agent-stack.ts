@@ -35,7 +35,7 @@ const supportedFormat = JSON.stringify(["pdf", "txt", "csv", "pptx", "ppt", "doc
 
 const max_object_size = 102400000; // 100 MB max size of an object, 50MB(default)
 const enableHybridSearch = 'true';
-
+const enableContexualRetrieval = 'true';
 const claude3_5_sonnet = [
   {
     "bedrock_region": "us-west-2", // Oregon
@@ -674,8 +674,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
         debugMessageMode: debugMessageMode,
         LLM_for_chat: JSON.stringify(LLM_for_chat),          
         LLM_for_multimodal: JSON.stringify(claude3_sonnet),          
-        LLM_embedding: JSON.stringify(LLM_embedding),
-        LLM_for_contexual_retrieval: JSON.stringify(LLM_for_contexual_retrieval),     
+        LLM_embedding: JSON.stringify(LLM_embedding),        
         projectName: projectName,
         vectorIndexName: vectorIndexName,
         enalbeParentDocumentRetrival: enalbeParentDocumentRetrival
@@ -804,11 +803,13 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
           LLM_for_chat: JSON.stringify(LLM_for_chat),          
           LLM_for_multimodal: JSON.stringify(claude3_sonnet),          
           LLM_embedding: JSON.stringify(LLM_embedding),
+          LLM_for_contexual_retrieval: JSON.stringify(LLM_for_contexual_retrieval),     
           roleArn: roleLambdaWebsocket.roleArn,
           path: 'https://'+distribution.domainName+'/',           
           max_object_size: String(max_object_size),
           supportedFormat: supportedFormat,
           enableHybridSearch: enableHybridSearch,
+          enableContexualRetrieval: enableContexualRetrieval,
           vectorIndexName: vectorIndexName
         }
       });         

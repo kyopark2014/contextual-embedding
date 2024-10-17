@@ -57,6 +57,7 @@ supportedFormat = json.loads(os.environ.get('supportedFormat'))
 print('supportedFormat: ', supportedFormat)
 
 enableHybridSearch = os.environ.get('enableHybridSearch')
+enableContexualRetrieval = os.environ.get('enableContexualRetrieval')
 vectorIndexName = os.environ.get('vectorIndexName')
 
 enableImageExtraction = 'true'
@@ -524,7 +525,6 @@ def create_nori_index():
 if enableHybridSearch == 'true':
     create_nori_index()
 
-enableContexualRetrieval = 'true'
 def get_contexual_docs(whole_doc, splitted_docs):
     contextual_template = (
         "<document>"
@@ -560,7 +560,7 @@ def get_contexual_docs(whole_doc, splitted_docs):
         output = response.content
         contextualized_chunk = output[output.find('<result>')+8:len(output)-9]
         
-        print(f"--> {i}: original_chunk: {doc.page_content}")        
+        print(f"--> {i}: original_chunk: {doc.page_content}")
         print(f"--> {i}: contexualized_chunk: {contextualized_chunk}")
         
         docs.append(
