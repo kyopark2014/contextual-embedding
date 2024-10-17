@@ -161,6 +161,7 @@ const titan_embedding_v2 = [  // dimension = 1024
 ];
 
 const LLM_for_chat = claude3_sonnet;
+const LLM_for_contexual_retrieval = claude3_haiku;
 const LLM_for_multimodal = claude3_sonnet;
 const LLM_embedding = titan_embedding_v2;
 const vectorIndexName = projectName
@@ -674,6 +675,7 @@ export class CdkAnalyticAgentStack extends cdk.Stack {
         LLM_for_chat: JSON.stringify(LLM_for_chat),          
         LLM_for_multimodal: JSON.stringify(claude3_sonnet),          
         LLM_embedding: JSON.stringify(LLM_embedding),
+        LLM_for_contexual_retrieval: JSON.stringify(LLM_for_contexual_retrieval),     
         projectName: projectName,
         vectorIndexName: vectorIndexName,
         enalbeParentDocumentRetrival: enalbeParentDocumentRetrival

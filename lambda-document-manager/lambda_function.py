@@ -41,8 +41,10 @@ sqsUrl = os.environ.get('sqsUrl')
 doc_prefix = s3_prefix+'/'
 LLM_for_chat = json.loads(os.environ.get('LLM_for_chat'))
 LLM_for_multimodal= json.loads(os.environ.get('LLM_for_multimodal'))
+LLM_for_contexual_retrieval = json.loads(os.environ.get('LLM_for_contexual_retrieval'))
 LLM_embedding = json.loads(os.environ.get('LLM_embedding'))
 selected_chat = 0
+selected_contexual_chat = 0
 selected_multimodal = 0
 selected_embedding = 0
 maxOutputTokens = 4096
@@ -176,6 +178,44 @@ def get_chat():
     selected_chat = selected_chat + 1
     if selected_chat == len(LLM_for_chat):
         selected_chat = 0
+    
+    return chat
+
+def get_contexual_retrieval_chat():
+    global selected_contexual_chat
+    profile = LLM_for_contexual_retrieval[selected_contexual_chat]
+    bedrock_region =  profile['bedrock_region']
+    modelId = profile['model_id']
+    print(f'selected_contexual_chat: {selected_contexual_chat}, bedrock_region: {bedrock_region}, modelId: {modelId}')
+                          
+    # bedrock   
+    boto3_bedrock = boto3.client(
+        service_name='bedrock-runtime',
+        region_name=bedrock_region,
+        config=Config(
+            retries = {
+                'max_attempts': 30
+            }
+        )
+    )
+    parameters = {
+        "max_tokens":maxOutputTokens,     
+        "temperature":0.1,
+        "top_k":250,
+        "top_p":0.9,
+        "stop_sequences": [HUMAN_PROMPT]
+    }
+    # print('parameters: ', parameters)
+
+    chat = ChatBedrock(   # new chat model
+        model_id=modelId,
+        client=boto3_bedrock, 
+        model_kwargs=parameters,
+    )    
+    
+    selected_contexual_chat = selected_contexual_chat + 1
+    if selected_contexual_chat == len(LLM_for_contexual_retrieval):
+        selected_contexual_chat = 0
     
     return chat
 
@@ -507,7 +547,7 @@ def get_contexual_docs(whole_doc, splitted_docs):
     docs = []
     for i, doc in enumerate(splitted_docs):
         
-        chat = get_chat()
+        chat = get_contexual_retrieval_chat()
         contexual_chain = contextual_prompt | chat
             
         response = contexual_chain.invoke(
