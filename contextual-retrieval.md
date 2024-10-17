@@ -2,12 +2,11 @@
 
 [Introducing Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval)에서는 Contextual Embedding과 keyword 검색으로 RAG의 성능을 향상시키는 내용을 설명하고 있습니다. 
 
-
-![image](https://github.com/user-attachments/assets/d6f7927b-9da5-4f6e-9408-c62150d16a28)
+![image](https://github.com/user-attachments/assets/0e84bc79-5cb3-44fe-9c7a-23bb0d9552a7)
 
 ## Contexual Embedding
 
-아래와 같이 chunk를 나누면 검색시 정보가 누락되어서 원한는 결과를 얻을 수 없습니다.
+아래와 같이 chunk를 나누면 검색시 정보가 누락되어서 원한는 결과를 얻을 수 없습니다. 이때 contextualized chunk를 추가하는 방식으로 RAG의 성능을 개선할 수 있습니다. 
 
 ![image](https://github.com/user-attachments/assets/e3da7e48-ca92-42b2-bff4-e76605320de5)
 
