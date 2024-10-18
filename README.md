@@ -222,7 +222,7 @@ Goodwill and other intangibles 14,877,234 15,192,971 16,034,339
 ```
 아래는 contexualized chunk입니다.
 
-``text
+```text
 This chunk provides detailed financial information about Suzano SA, 
 including its turnover, gross results, operating profit, net profit, and asset details. 
 It is part of the overall assessment and rating of Suzano SA presented in the document.
