@@ -13,7 +13,79 @@
 
 [Contextual Chunk Header](./contextual-chunk-headers.md)와 [Contextual Retrieval](./contextual-retrieval.md)와 같이 문서를 chunk할 때에 chunk에 대한 설명을 포함하면 검색의 정확도를 높일 수 있습니다. 
 
-### Contextual Retrieval
+### Contextual Retrieval 결과
+
+아래와 같이 [Contextual Retrieval](./contextual-retrieval.md)의 prompt를 기반으로 요약을 하면 아래와 같이 구현할 수 있습니다.
+
+```python
+def get_contexual_docs(whole_doc, splitted_docs):
+    docs = []
+    for i, doc in enumerate(splitted_docs):        
+        chat = get_contexual_retrieval_chat()
+        
+        if isKorean(doc.page_content)==True:
+            #contextual_template = (
+            #    "<document> tag는 전체 문서입니다."
+            #    "<document>"
+            #    "{WHOLE_DOCUMENT}"
+            #    "</document>"
+            #    "<chunk> tag는 관심을 가지는 문서로서 전체 문서의 일부분입니다."
+            #    "<chunk>"
+            #    "{CHUNK_CONTENT}"
+            #    "</chunk>"
+            #    "관심을 가지는 문서의 상황을 전체 문서를 활용하여 간단하고 명확하게 설명합니다."
+            #    "답변은 간단한 문맥만 포함하고 다른 것은 포함하지 않습니다."
+            #    "결과는 <result> tag를 붙여주세요."
+            #)
+            contextual_template = (
+                "<document>"
+                "{WHOLE_DOCUMENT}"
+                "</document>"
+                "Here is the chunk we want to situate within the whole document."
+                "<chunk>"
+                "{CHUNK_CONTENT}"
+                "</chunk>"
+                "Please give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval of the chunk."
+                "Answer only with the succinct context and nothing else."
+                "Respond in Korean "
+                "Put it in <result> tags."
+            )
+        else:
+            contextual_template = (
+                "<document>"
+                "{WHOLE_DOCUMENT}"
+                "</document>"
+                "Here is the chunk we want to situate within the whole document."
+                "<chunk>"
+                "{CHUNK_CONTENT}"
+                "</chunk>"
+                "Please give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval of the chunk."
+                "Answer only with the succinct context and nothing else."
+                "Put it in <result> tags."
+            )          
+    
+        contextual_prompt = ChatPromptTemplate([
+            ('human', contextual_template)
+        ])
+        contexual_chain = contextual_prompt | chat
+            
+        response = contexual_chain.invoke(
+            {
+                "WHOLE_DOCUMENT": whole_doc.page_content,
+                "CHUNK_CONTENT": doc.page_content
+            }
+        )
+        output = response.content
+        contextualized_chunk = output[output.find('<result>')+8:len(output)-9]
+        
+        docs.append(
+            Document(
+                page_content=contextualized_chunk+"\n\n"+doc.page_content,
+                metadata=doc.metadata
+            )
+        )
+    return docs
+```
 
 #### Case1 - Desiable Case
 
