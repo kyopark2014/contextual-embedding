@@ -120,7 +120,6 @@ def get_contexual_docs(whole_doc, splitted_docs):
 이 문서는 보험 상품에 대한 정보와 주의사항을 설명하고 있습니다. 이 부분은 보험 계약 체결 시 유의사항과 보험 관련 법적 권리 및 제한 사항을 자세히 설명하고 있습니다.
 ```
 
-
 #### Case 2 - Undesirable Case
 
 아래는 같은 보험 문서의 다른 chunk입니다.
