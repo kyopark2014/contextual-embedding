@@ -192,7 +192,7 @@ It is likely included to provide background information on the company's corpora
 
 #### Case 3 - Desired Case
 
-아래는 어떤 기업의 
+아래는 어떤 기업의 financial 정보에 대한 chunk 입니다.
 
 
 ```text
