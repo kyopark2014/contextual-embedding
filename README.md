@@ -220,7 +220,7 @@ Long-term assets 103,391,275 96,075,318 84,872,211
 Fixed assets 57,718,542 50,656,634 38,169,703
 Goodwill and other intangibles 14,877,234 15,192,971 16,034,339
 ```
-아래는 contexualized chunk입니다.
+아래는 contexualized chunk입니다. chunk에 없는 회사명을 포함한 정보를 제공합니다.
 
 ```text
 This chunk provides detailed financial information about Suzano SA, 
