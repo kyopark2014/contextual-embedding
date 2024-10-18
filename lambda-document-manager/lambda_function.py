@@ -545,18 +545,31 @@ def get_contexual_docs(whole_doc, splitted_docs):
         chat = get_contexual_retrieval_chat()
         
         if isKorean(doc.page_content)==True:
+            #contextual_template = (
+            #    "<document> tag는 전체 문서입니다."
+            #    "<document>"
+            #    "{WHOLE_DOCUMENT}"
+            #    "</document>"
+            #    "<chunk> tag는 관심을 가지는 문서로서 전체 문서의 일부분입니다."
+            #    "<chunk>"
+            #    "{CHUNK_CONTENT}"
+            #    "</chunk>"
+            #    "관심을 가지는 문서의 상황을 전체 문서를 활용하여 간단하고 명확하게 설명합니다."
+            #    "답변은 간단한 문맥만 포함하고 다른 것은 포함하지 않습니다."
+            #    "결과는 <result> tag를 붙여주세요."
+            #)
             contextual_template = (
-                "<document> tag는 전체 문서입니다."
                 "<document>"
                 "{WHOLE_DOCUMENT}"
                 "</document>"
-                "<chunk> tag는 관심을 가지는 문서로서 전체 문서의 일부분입니다."
+                "Here is the chunk we want to situate within the whole document."
                 "<chunk>"
                 "{CHUNK_CONTENT}"
                 "</chunk>"
-                "관심을 가지는 문서의 상황을 전체 문서를 활용하여 간단하고 명확하게 설명합니다."
-                "답변은 간단한 문맥만 포함하고 다른 것은 포함하지 않습니다."
-                "결과는 <result> tag를 붙여주세요."
+                "Please give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval of the chunk."
+                "Answer only with the succinct context and nothing else."
+                "Respond in Korean "
+                "Put it in <result> tags."
             )
         else:
             contextual_template = (
@@ -570,7 +583,7 @@ def get_contexual_docs(whole_doc, splitted_docs):
                 "Please give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval of the chunk."
                 "Answer only with the succinct context and nothing else."
                 "Put it in <result> tags."
-            )      
+            )          
     
         contextual_prompt = ChatPromptTemplate([
             ('human', contextual_template)
