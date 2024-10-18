@@ -639,6 +639,11 @@ def add_to_opensearch(docs, key):
 
         parent_docs = parent_splitter.split_documents(docs)
         print('len(parent_docs): ', len(parent_docs))
+        
+        print('parent chunk[0]: ', parent_docs[0].page_content)
+        parent_docs = get_contexual_docs(docs[-1], parent_docs)
+        print('parent contextual chunk[0]: ', parent_docs[0].page_content)
+                
         if len(parent_docs):
             # print('parent_docs[0]: ', parent_docs[0])
             # parent_doc_ids = [str(uuid.uuid4()) for _ in parent_docs]
@@ -665,9 +670,9 @@ def add_to_opensearch(docs, key):
                     child_docs.extend(sub_docs)
                 # print('child_docs: ', child_docs)
                 
-                print('chunk[0]: ', child_docs[0].page_content)                      
+                print('child chunk[0]: ', child_docs[0].page_content)
                 child_docs = get_contexual_docs(docs[-1], child_docs)
-                print('contextual chunk[0]: ', child_docs[0].page_content)  
+                print('child contextual chunk[0]: ', child_docs[0].page_content)
                 
                 child_doc_ids = vectorstore.add_documents(child_docs, bulk_size = 10000)
                 print('child_doc_ids: ', child_doc_ids) 
