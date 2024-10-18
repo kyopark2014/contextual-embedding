@@ -15,7 +15,7 @@
 
 ### Contextual Retrieval
 
-#### Case1 - Desiable Case
+#### Case1 - Desiable Case
 
 아래는 보험문서인 [book_SMMDINLM239.pdf](./contents/book_SMMDINLM239.pdf)의 Chunk입니다. 
 
