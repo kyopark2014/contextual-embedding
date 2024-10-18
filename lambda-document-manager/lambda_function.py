@@ -546,14 +546,15 @@ def get_contexual_docs(whole_doc, splitted_docs):
         
         if isKorean(doc.page_content)==True:
             contextual_template = (
+                "<document> tag는 전체 문서입니다."
                 "<document>"
                 "{WHOLE_DOCUMENT}"
                 "</document>"
-                "아래 <chunk>는 전체 문서의 일부 내용입니다."
+                "<chunk> tag는 관심을 가지는 문서로서 전체 문서의 일부분입니다."
                 "<chunk>"
                 "{CHUNK_CONTENT}"
                 "</chunk>"
-                "검색 검색 결과의 검색 가능성을 높이기 위해서, 문서 전체 내용에서 이 부분의 상황을 간단하고 명확하게 설명해 주시기 바랍니다."
+                "관심을 가지는 문서의 상황을 전체 문서를 활용하여 간단하고 명확하게 설명합니다."
                 "답변은 간단한 문맥만 포함하고 다른 것은 포함하지 않습니다."
                 "결과는 <result> tag를 붙여주세요."
             )
