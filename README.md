@@ -15,8 +15,9 @@
 
 ### Contextual Retrieval
 
-#### 원본 chunk
-아래는 원본 Chunk입니다. 
+#### Case1 - Disable Case
+
+아래는 보험문서인 [book_SMMDINLM239.pdf](./contents/book_SMMDINLM239.pdf)의 Chunk입니다. 
 
 ```text
 전문금융소비자를 말합니다.
@@ -41,8 +42,6 @@
 묻지 않습니다. 전화, 메신저, 카카오톡, 인터넷 등을 이용해 금융기관 또는 검찰, 경찰, 금감원을 사칭한 보이스피싱 및
 ```
 
-#### Contextualized chunk
-
 이때 얻어진 contexualized_chunk의 예는 아래와 같습니다. 이때 전체 문서에서 해당 chunk에 대한 전반적인 정보를 잘 요약하고 있습니다.
 
 ```text
@@ -50,9 +49,9 @@
 ```
 
 
-#### 원본 chunk
+#### Case 2 - Undesirable Case
 
-아래는 다른 chunk입니다.
+아래는 같은 보험 문서의 다른 chunk입니다.
 
 ```text
 묻지 않습니다. 전화, 메신저, 카카오톡, 인터넷 등을 이용해 금융기관 또는 검찰, 경찰, 금감원을 사칭한 보이스피싱 및 
@@ -75,9 +74,7 @@ Moody’s Investors Service  (2015~2021)
 세계적인 신용평가사들로부터 국내 최고 신용등급 획득
 ```
 
-#### Contextualized chunk
-
-그런데 이때 얻어진 Contextualized chunk의 내용은 chunk와 관계없이 전체 문서의 영향을 받아서 아래와 같이 chunk의 내용을 충분히 설명하지 못하고 있습니다.
+이때 얻어진 Contextualized chunk의 내용은 chunk와 관계없이 전체 문서의 영향을 받아서 아래와 같이 chunk의 내용을 충분히 설명하지 못하고 있습니다.
 
 ```text
 이 문서는 여성 기준 40세, 20년 만기, 전기납, 월납, 최초계약, 주계약 가입금액 1,500만원, 세전 보험상품의 정보를 제공하고 있습니다. 이 문서의 마지막 부분에는 보험사의 광고 및 수상 내역이 포함되어 있습니다.
