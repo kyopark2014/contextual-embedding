@@ -152,6 +152,44 @@ Moody’s Investors Service  (2015~2021)
 이 문서는 여성 기준 40세, 20년 만기, 전기납, 월납, 최초계약, 주계약 가입금액 1,500만원, 세전 보험상품의 정보를 제공하고 있습니다. 이 문서의 마지막 부분에는 보험사의 광고 및 수상 내역이 포함되어 있습니다.
 ```
 
+
+#### Case 3 - Desired Case
+
+아래의 경우는 기업의 지분율에 대한 데이터로 아래 chunk에는 단순히 지분율 열거하고 있습니다.
+
+```text
+structure as of 3 January 2024 (date of last disclosure) is as follows:
+Suzano Holding SA, Brazil - 27.76%  
+David Feffer - 4.04%  
+Daniel Feffer - 3.63%  
+Jorge Feffer - 3.60%  
+Ruben Feffer - 3.54%  
+Alden Fundo De Investimento Em Ações, Brazil - 1.98%  
+Other investors hold the remaining 55.45%
+Suzano Holding SA is majority-owned by the founding Feffer family
+Ultimate Beneficial Owners
+and/or Persons with Significant
+ControlFilings show that the beneficial owners/persons with significant control
+are members of the Feffer family, namely David Feffer, Daniel Feffer,
+Jorge Feffer, and Ruben Feffer
+Directors Executive Directors:  
+Walter Schalka - Chief Executive Officer  
+Aires Galhardo - Executive Officer - Pulp Operation  
+Carlos Aníbal de Almeida Jr - Executive Officer - Forestry, Logistics and
+Procurement  
+Christian Orglmeister - Executive Officer - New Businesses, Strategy, IT,
+Digital and Communication
+```
+
+아래는 contexualized chunk입니다. 원본 chunk에 없는 회사명과 ownership에 대한 정보를 포함하고 있습니다.
+
+```text
+This chunk provides details on the ownership structure and key executives of Suzano SA, 
+the company that is the subject of the overall document.
+It is likely included to provide background information on the company's corporate structure and leadership.
+```
+
+
 ### Header/Footer
 
 [PDF에서 Header와 Footer 처리](https://github.com/kyopark2014/korean-chatbot-using-amazon-bedrock/blob/main/pdf-header-footer.md)와 같이 Rect를 이용해 pdf에서 header와 footer를 정의합니다.
