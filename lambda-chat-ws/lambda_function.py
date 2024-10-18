@@ -319,7 +319,7 @@ def reflash_opensearch_index():
     #########################
     # opensearch index (create)
     #########################
-    print(f"deleting opensearch index... {vectorIndexName}") 
+    print(f"deleting opensearch index... {index_name}") 
     
     try: # create index
         response = os_client.indices.delete(
@@ -1845,6 +1845,7 @@ def getResponse(connectionId, jsonBody):
         isTyping(connectionId, requestId)
         reflash_opensearch_index()
         msg = "The index was reflashed in OpenSearch."
+        sendResultMessage(connectionId, requestId, msg)
         
     else:             
         if type == 'text':
