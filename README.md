@@ -190,7 +190,7 @@ the company that is the subject of the overall document.
 It is likely included to provide background information on the company's corporate structure and leadership.
 ```
 
-#### Case 3 - Desired Case
+#### Case 4 - Desired Case
 
 아래는 어떤 기업의 financial 정보에 대한 chunk 입니다.
 
@@ -226,6 +226,31 @@ Goodwill and other intangibles 14,877,234 15,192,971 16,034,339
 This chunk provides detailed financial information about Suzano SA, 
 including its turnover, gross results, operating profit, net profit, and asset details. 
 It is part of the overall assessment and rating of Suzano SA presented in the document.
+```
+
+#### Case 5 - Desiered Case
+
+아래는 회사 연락처에 대한 chunk입니다. 
+
+```text
+|Telephone|+55 11 3503&amp;#45;9000|
+|Email|ri@suzano.com.br|
+|Company Details||
+|Company Type|Publicly Listed|
+|Company Status|Operating|
+|Sector|Industrial|
+|Place of Incorporation|Brazil|
+|Region of Incorporation|Bahia|
+|Date of Incorporation|17 December 1987|
+|Company Registered Number|CNPJ (Tax Id. No.): 16.404.287/0001&amp;#45;55|
+```
+
+이때의 contexualized chunk의 결과는 아래와 같습니다. chunk에 없는 회사의 연락처에 대한 정보를 제공할 수 있습니다.
+
+```text
+This chunk provides detailed company information about Suzano SA,
+including its contact details, company type, status, sector, place and date of incorporation, and registered number.
+This information is part of the overall assessment and rating of Suzano SA presented in the document.
 ```
 
 ### Header/Footer
