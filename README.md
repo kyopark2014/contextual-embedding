@@ -189,6 +189,42 @@ the company that is the subject of the overall document.
 It is likely included to provide background information on the company's corporate structure and leadership.
 ```
 
+#### Case 3 - Desired Case
+
+아래는 어떤 기업의 
+
+```text
+Type of Compilation Consolidated Consolidated Consolidated
+Currency / UnitsBRL ‘000 (USD 1 =
+BRL 5.04)BRL ‘000 (USD 1 =
+BRL 5.29)BRL ‘000 (USD 1 =
+BRL 5.64)
+Turnover 29,384,030 49,830,946 40,965,431
+Gross results 11,082,919 25,009,658 20,349,843
+Depreciation (5,294,748) (7,206,125) (6,879,132)
+Operating profit (loss) 9,058,460 22,222,781 18,180,191
+Interest income 1,215,644 967,010 272,556
+Interest expense (3,483,674) (4,590,370) (4,221,301)
+Other income (expense) 3,511,470 6,432,800 (9,347,234)
+Profit (loss) before tax 12,569,930 8,832,957 (17,642,129)
+Tax (2,978,271) (197,425) (6,928,009)
+Net profit (loss) 9,591,659 23,394,887 8,635,532
+Net profit (loss) attributable to
+minorities/non-controlling
+interests14,154 13,270 9,146
+Net profit (loss) attributable to the
+company9,575,938 23,119,235 8,751,864
+Long-term assets 103,391,275 96,075,318 84,872,211
+Fixed assets 57,718,542 50,656,634 38,169,703
+Goodwill and other intangibles 14,877,234 15,192,971 16,034,339
+```
+아래는 contexualized chunk입니다.
+
+``text
+This chunk provides detailed financial information about Suzano SA, 
+including its turnover, gross results, operating profit, net profit, and asset details. 
+It is part of the overall assessment and rating of Suzano SA presented in the document.
+```
 
 ### Header/Footer
 
