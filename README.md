@@ -6,7 +6,6 @@
 </p>
 
 
-여기서는 정보를 분석하는 Agent 구현하기에 대해 설명합니다.
 
 
 ## Contextual Chunk
